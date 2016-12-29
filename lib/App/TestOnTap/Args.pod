@@ -1,0 +1,157 @@
+=head1 NAME
+
+App::TestOnTap::Args
+
+Commandline options and arguments understood for TestOnTap processing
+
+=head1 SYNOPSIS
+
+ testontap
+    [
+        --usage | -?
+            |
+        --help
+            |
+        --manual
+            |
+        --version
+    ]
+    [ --verbose ]
+    [ --workdirectory <path> ]
+    [ --include <query> ]
+    [ --jobs <n> ]
+    [ --timer ]
+    [ --execmap <mapfile> ]
+    [ --archive ]
+    [ --savedirectory <path> ]
+    [ --define | -D <key>=<value> [ --define ... ] ]
+    <suitepath>
+    [<suiteargs> ...]
+
+=head1 OPTIONS AND ARGUMENTS
+
+All options can be abbreviated, as long as they are unambiguous. Option matching is case
+sensitive. Forcibly end option parsing using '--'.
+
+=over
+
+=item Information options
+
+If any of these options are given, the rest of the command line is ignored.
+If multiple of these options are given only one will be acted on, in the order
+I<--manual>, I<--help>, I<--usage> and I<--version>.
+
+=over
+
+=item B<--usage> | B<-?>
+
+Displays basic usage information.
+
+=item B<--help>
+
+Displays usage and help with options/arguments.
+
+=item B<--manual>
+
+Displays the full manual page.
+
+=item B<--version>
+
+Displays the script name and version information.
+
+=back
+
+=item B<--verbose>
+
+By default, the output will be regular test output after consuming TAP (e.g. timings, ok/fail messages, summary etc).
+
+Using this option allows the pass through of more verbose output from the tests themselves.
+
+=item B<--workdirectory E<lt>pathE<gt>>
+
+By default, a temporary directory is created to hold the data produced by the tests and is automatically
+removed when the run is complete.
+
+Use this option if you want to keep the work dir after completion (for debugging/perusal/whatever).
+The path must not exist beforehand.
+
+For details of the work directory, see the L<manual|App::TestOnTap/"Work and save directory layout">.
+
+=item B<--include E<lt>queryE<gt>>
+
+By default, all tests will be run (subject to selection by the C<execmap> in effect).
+
+By providing a I<query>, a subset of those tests can be selected.
+However, B<actual> tests selected are subject to any dependencies declared between tests.
+
+For details on manually selecting tests, see the L<manual|App::TestOnTap/"Selecting tests">.
+
+=item B<--jobs E<lt>nE<gt>>
+
+By default, tests will run in sequence, governed by any dependencies, and sorted alphabetically. Also by
+default, they will always run serially.
+
+By setting this option to a value higher than 1 allowing a maximum of I<n> jobs to execute concurrently.
+However, for this to take effect, a C<parallelizable> rule must be in the suite configuration in order to
+select which tests actually can run in parallel
+
+The B<actual> amount of concurrently executing jobs are then subject to limiting factors, such as dependencies and
+the parallelizability of a given test.
+
+For details on parallelization, see the L<manual|App::TestOnTap/"Parallelization">.
+
+=item B<--execmap E<lt>mapfileE<gt>>
+
+By default, the test suite will be searched for 'executables' based on the exec map defined in the suite, or
+a built in default if none defined.
+
+This option allows overriding the choices of the suite/internal exec map.
+
+For details on execmaps, see the L<manual|App::TestOnTap/"Executable mappings">.
+
+=item B<--archive>, B<--savedirectory E<lt>pathE<gt>> 
+
+By default, the results of a test run are not saved.
+
+By providing either or both of these options, results may be saved as either a ready-made archive
+or a regular directory. The name of the saved file/directory will be named using the basename of the
+suite plus a timestamp and the run id, which together should be entirely unique.
+
+Giving only C<--archive>, the result will be saved as an archive in the current directory.
+
+Giving C<--archive --savedirectory some/path> together, the result will be saved as an archive
+in the directory some/path (the directory may or may not exist beforehand).
+ 
+Giving only C<--savedirectory some/path>, the result archive will be a regular subdirectory in the
+directory some/path (the directory may or may not exist beforehand).
+
+For details on saved results, see the L<manual|App::TestOnTap/"Work and save directory layout">.
+
+=item B<--define E<lt>keyE<gt>=E<lt>valueE<gt>>
+
+The function of this option is to make it possible to pass on arbitrary key/value pairs to a saved result
+in order to later enable various types of differentiation to be made when processing the saved result.
+The defines are not made available to tests.
+
+Can be given multiple times.
+
+See the L<manual|App::TestOnTap/"Saved results"> for details on how this information is saved.
+
+=item B<suitepath>
+
+This is the path to the root of the suite. The root must contain a valid I<testontap configuration> file.
+ 
+For details on test suites, see the L<manual|App::TestOnTap/"Test suites">.
+
+=item B<suiteargs ...>
+
+Any arguments can be passed, and they will just be passed on as-is to the tests when they start.
+
+=back
+
+=head1 MORE HELP
+
+For more information on TestOnTap, see the full L<manual|App::TestOnTap>, or use I<--manual>
+or run I<perldoc App::TestOnTap> to see the full manual page.
+
+=cut

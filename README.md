@@ -2,7 +2,40 @@
 ---
 **NOTE: This is the master branch of this repo and should not contain anything else than this document.** Active branches are listed below - checkout the relevant one before doing any work!  
 
-@@TBW@@.
+### About
+App::TestOnTap is a Perl module used for executing test suites with executables providing TAP.
+It is scalable from small to large test suites, and also allows test parallelization.
+Optionally it will aggregate the results and package them for later analysis.
+
+#### Versioning
+The module uses the apparently most prevalent model for module versioning: a floating point value, where the two parts are major and minor respectively, where _major_ increases **may** contain backwards incompatible changes, but _minor_ **must not** do so. There is little other implied meaning in the numbers and visible releases might not always have consecutive numbers (e.g. due to problems during late found problems or repo management issues).
+
+It is expressed as a _string_ (for the benefit of version scanners and to avoid dropping zeroes at the end) and next evaled into a number. The decimal part is always at least 3 digits long, but can be longer for developer only releases, expressed with an underscore and then another three digit number.  
+
+The minor number will use even numbers for end-user releases and odd for developer only releases.  
+
+Examples:
+  * 1.000  
+    The first end-user release  
+  * 1.001_042  
+    A developer release working up to release 1.002  
+  * 2.012
+
+#### Repo branching/tagging structure
+The branching structure is intended to follow the version structure closely. The starting branch is named simply '**x**', where the 'x' signifies that only major releases of '1', '2', '3'...etc may be done here (in practice the releases will be tagged as '1.000' and so on). This branch has a separate commit graph from master and they should not be confused or merged.
+
+Once the tagging has been made, a new branch will be cut away, named after the major branch, e.g. '**1.xxx**'. The 'xxx' again stands for a number, now in the minor series such that only minor releases in the '1' major series may be done here, e.g. '1.002', '1.004' etc. Also '000' developer releases may be done here, tagged for example '1.001_000', which will result in a '**1.001_xxx**' branch, where further developer releases are tagged until finished. A developer release branch is not required, commits may happen directly on '1.xxx' until complete.
+
+When a sub branch is completed it will be merged back to it's parent, e.g. the '1.001_xxx' branch is eventually deemed ready, and is thus merged back to '1.xxx' for eventual release as '1.002'. The same holds true for '1.xxx' that it will eventually be merged back to 'x'.
+
+### Releases
+  * N/A
+
+### Active branches
+  * **master**  
+    For maintenance of this document only.
+  * **x**  
+    For work aimed at v1.000
 
 #### LICENSE AND COPYRIGHT
 

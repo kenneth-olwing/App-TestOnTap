@@ -5,7 +5,7 @@ use FindBin qw($Bin);
 
 use lib "$Bin/lib";
 
-use App::TestOnTap::_vars;
+use App::TestOnTap::_dbgvars;
 
 use TestUtils;
 
@@ -20,7 +20,7 @@ like($stdout->[8], qr/^t1\.pl /, "t1 last");
 like($stdout->[13], qr/^Files=3, Tests=3, /, "Three tests found");
 is($stdout->[14], "Result: PASS", "Passed");
 
-$App::TestOnTap::_vars::IGNORE_DEPENDENCIES = 1;
+$App::TestOnTap::_dbgvars::IGNORE_DEPENDENCIES = 1;
 ($ret, $stdout, $stderr) = TestUtils::xeqsuite('--verbose');
 
 is($ret, 0, "Exited with 0");

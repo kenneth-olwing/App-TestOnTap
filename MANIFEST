@@ -1,7 +1,7 @@
 Changes
 lib/App/TestOnTap.pm
 lib/App/TestOnTap.pod
-lib/App/TestOnTap/_vars.pm
+lib/App/TestOnTap/_dbgvars.pm
 lib/App/TestOnTap/Args.pm
 lib/App/TestOnTap/Args.pod
 lib/App/TestOnTap/Dispenser.pm

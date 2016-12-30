@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use App::TestOnTap::Util qw(slashify);
-use App::TestOnTap::_vars;
+use App::TestOnTap::_dbgvars;
 
 use Config::Std;
 use Grep::Query;
@@ -32,11 +32,11 @@ sub new
 sub __readCfgFile
 {
 	my $self = shift;
-	my $configFilePath = $App::TestOnTap::_vars::FORCED_CONFIG_FILE || shift;
+	my $configFilePath = $App::TestOnTap::_dbgvars::FORCED_CONFIG_FILE || shift;
 	my $userExecMapFile = shift;
 	
 	my $cfg;
-	if (-e $configFilePath && !$App::TestOnTap::_vars::IGNORE_CONFIG_FILE)
+	if (-e $configFilePath && !$App::TestOnTap::_dbgvars::IGNORE_CONFIG_FILE)
 	{
 		read_config($configFilePath, $cfg);
 	}
@@ -91,7 +91,7 @@ sub __readCfgFile
 
 	my %depRules;
 
-	if (!$App::TestOnTap::_vars::IGNORE_DEPENDENCIES)
+	if (!$App::TestOnTap::_dbgvars::IGNORE_DEPENDENCIES)
 	{
 		# find all dependency sections
 		#
@@ -121,7 +121,7 @@ sub getName
 {
 	# works as both class/instance/sub...
 	#
-	return $App::TestOnTap::_vars::CONFIG_FILE_NAME;
+	return $App::TestOnTap::_dbgvars::CONFIG_FILE_NAME;
 }
 
 sub getId

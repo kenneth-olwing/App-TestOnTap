@@ -2,7 +2,7 @@
 # Do not use for production purposes; intended for debugging/testing only.
 # These may change or be removed at any time.
 #
-package App::TestOnTap::_vars;
+package App::TestOnTap::_dbgvars;
 
 use strict;
 use warnings;

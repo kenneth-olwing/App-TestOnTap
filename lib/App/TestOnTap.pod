@@ -11,13 +11,9 @@ their TAP output and optionally save the aggregated results for later processing
   #
   testontap --jobs 10 path/to/suite/root
 
-  # or pass in the argv needed to the main entry point in your own script
-  #
-  exit(App::TestOnTap::main(@ARGV));
-  
 =head1 OVERVIEW
 
-B<NOTE: THIS IS CURRENTLY VIEWED TO BE IN BETA STATE. IT MAY CHANGE IN INCOMPATIBLE WAYS BEFORE THE 1.000 RELEASE.>
+B<NOTE: THIS IS CURRENTLY CONSIDERED TO BE IN BETA STATE. IT MAY CHANGE IN INCOMPATIBLE WAYS BEFORE THE 1.000 RELEASE.>
 
 This package is an application, generally intended to be run from a command line.
 
@@ -118,7 +114,7 @@ for describing required dependencies between tests.
 =head1 THE TEST SUITE
 
 A test suite is basically very simple: it's a directory. To be minimally useful, it needs to contain a single file
-named with an extension defined in the default "exec mapping" (see more about defaults in L<"Executable mappings">).
+named with an extension defined in the default "exec mapping" (see more about defaults in L<configs execmap section|"THE SUITE CONFIG">).
 
 So, assuming this:
 
@@ -140,11 +136,11 @@ However, the test suite should preferably as soon as possible be given a config 
 
 A test suite is configured by putting the file F<config.testontap> in the root of the suite.
 
-The standard module used for reading this file is L<"Config::Std">, please consult this module for
+The standard module used for reading this file is L<Config::Std>, please consult this module for
 general information on the format. In particular, some keys allows multi-line and/or multi-part values.
 
 Also, in several places this file can contain queries (e.g. to select tests) using a query format as
-described in L<"Grep::Query">. Notable here is that queries operate on paths inside the suite, so those
+described in L<Grep::Query>. Notable here is that queries operate on paths inside the suite, so those
 are defined as simply the relative path of the file from the root of the suite, and always using '/' as a path
 delimiter on all platforms. Directories will be suffixed with a '/'.
 
@@ -174,7 +170,7 @@ Example:
 
 =item B<include>
 
-This is optional. The value is a Grep::Query expression, and can be multi-line/part for readability.
+This is optional. The value is a L<Grep::Query> expression, and can be multi-line/part for readability.
 
 If not present, it effectively defaults to include all files, assuming they match given extensions in the
 "exec mapping" (see below).
@@ -195,7 +191,7 @@ This would avoid the 'unfinished_test.pl' file and contents of any '_data' direc
 
 This is optional, but necessary if parallelization using the '--jobs' flag is to be effective (a warning will be generated
 if the user requests a --jobs value greater than one, but no parallelizable rule is present).
-The value is a Grep::Query expression, and can be multi-line/part for readability.
+The value is a L<Grep::Query> expression, and can be multi-line/part for readability.
 
 If not given, it effectively defaults to forcing all tests to run serially, on the theory that a test not written
 with the understanding that it could be run in parallel with other tests might end up producing weird results. Hence,
@@ -218,9 +214,11 @@ that ends up acting as the default, i.e. tests are never parallelizable (but it 
   
 E.g. all tests are possible to run in parallel except two special ones.
 
-=item B<Section: [EXECMAP]>
+=item B<[EXECMAP]> (section)
 
 This section is optional, but recommended. It details how files with particular file extensions should be executed.
+Note that there is also possible to pass a file with this section manually using the '--execmap' option, in order
+to override or complement any defined execmap.
 
 The section should contain key/values where the key lists one or more extensions and the value details the command
 to use for those extensions. The value may be in multi-line/part format, which is required if the command contains
@@ -233,7 +231,7 @@ Example:
   pl t = perl
   jar = java
       = -jar
-  # in this case, could also have been written simpler as 'jar = java -jar'    
+  # in this case, could also have been written simpler as 'jar = java -jar'
   
 This means that any files found with the extensions 'pl' or 't' will be run by 'perl <file>' and that any 'jar' files
 will be run by 'java -jar <file>'. Any other files will be ignored.
@@ -256,7 +254,7 @@ While useful in the early stages for quickly getting started, good form is to en
 surprises if other extensions are added to the default, and also to use the "include" key to ensure only expected files are
 selected as tests regardless.
 
-=item B<Section: [DEPENDENCY <name>]>
+=item B<[DEPENDENCY E<lt>nameE<gt>]> (section)
 
 Sections like these are optional. There can be many with different names (the names have no internal meaning beyond
 helping when reporting problems with dependencies).
@@ -274,13 +272,13 @@ A dependency section has two required key/value pairs:
 
 =item B<match>
 
-This is required. The value is a Grep::Query expression, and can be multi-line/part for readability.
+This is required. The value is a L<Grep::Query> expression, and can be multi-line/part for readability.
 
 It must select one or more tests that will be dependent on tests selected by the "dependson" key.
 
 =item B<dependson>
 
-This is required. The value is a Grep::Query expression, and can be multi-line/part for readability.
+This is required. The value is a L<Grep::Query> expression, and can be multi-line/part for readability.
 
 It must select one or more tests that must be run before the tests selected by the "match" key.
 
@@ -293,11 +291,11 @@ Example:
   dependson = eq(init.pl)
   
   [DEPENDENCY File handling]
-  match = regexp(filehandl/.*)
+  match = regexp(^filehandl/)
   dependson = eq(basic_file_handling_setup.pl)
   
   [DEPENDENCY Picture processing]
-  match = regexp(picproc/.*)
+  match = regexp(^picproc/)
   dependson = eq(basic_picture_processing_setup.pl)
   
 The three separate rules will together create a dependency tree between tests. The first is basically simple: all tests are dependent
@@ -371,8 +369,13 @@ When all tests are concluded, data in it will be persisted before it is removed.
 
 The results can be persisted as either a plain directory tree or a zip archive. The naming will consist of the test suite
 name, the timestamp when the test was run and a 'run id' (an UUID, generated for each test run). If it's an archive file
-it will be suffixed with '.zip'. See L<Args|App::TestOnTap::Args> for details on how to control this using '--archive'
+it will be suffixed with '.zip'. See L<command line options and arguments|App::TestOnTap::Args> for details on how to control this using '--archive'
 and '--savedirectory'.
+
+The saved results are actually a part of the 'work directory', the place where all files are managed until they're saved.
+This includes, among other things, the temporary directory used for L</"TESTONTAP_TMP_DIR"> and may therefore sometimes
+be useful in debugging. It is normally a temporary location and automatically cleaned away, but by using the '--workdirectory'
+option, it will remain after completion so you may examine it.
 
 Example:
 

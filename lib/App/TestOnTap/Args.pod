@@ -38,6 +38,7 @@ sensitive. Forcibly end option parsing using '--'.
 =item Information options
 
 If any of these options are given, the rest of the command line is ignored.
+
 If multiple of these options are given only one will be acted on, in the order
 I<--manual>, I<--help>, I<--usage> and I<--version>.
 
@@ -75,16 +76,17 @@ removed when the run is complete.
 Use this option if you want to keep the work dir after completion (for debugging/perusal/whatever).
 The path must not exist beforehand.
 
-For details of the work directory, see the L<manual|App::TestOnTap/"Work and save directory layout">.
+For details of the work directory, see the L<manual regarding 'persisted results'|App::TestOnTap/"PERSISTED RESULT">.
 
 =item B<--include E<lt>queryE<gt>>
 
-By default, all tests will be run (subject to selection by the C<execmap> in effect).
+By default, all tests will be run (subject to selection by the C<execmap> in effect and the internally configured include).
 
-By providing a I<query>, a subset of those tests can be selected.
-However, B<actual> tests selected are subject to any dependencies declared between tests.
+By providing a I<query>, a subset of those tests can be manually selected. However, be aware that B<actual> tests selected
+are also subject to any dependencies declared between tests - e.g. a query selecting only test A will effectively also
+select test B if there is a A => B dependency in the config.
 
-For details on manually selecting tests, see the L<manual|App::TestOnTap/"Selecting tests">.
+For more on selecting tests, see the L<manual regarding the 'include' config setting|App::TestOnTap/"THE SUITE CONFIG">.
 
 =item B<--jobs E<lt>nE<gt>>
 
@@ -98,7 +100,7 @@ select which tests actually can run in parallel
 The B<actual> amount of concurrently executing jobs are then subject to limiting factors, such as dependencies and
 the parallelizability of a given test.
 
-For details on parallelization, see the L<manual|App::TestOnTap/"Parallelization">.
+For more on parallelization, see the L<manual regarding the 'parallelizable' config setting|App::TestOnTap/"THE SUITE CONFIG">.
 
 =item B<--execmap E<lt>mapfileE<gt>>
 
@@ -107,7 +109,7 @@ a built in default if none defined.
 
 This option allows overriding the choices of the suite/internal exec map.
 
-For details on execmaps, see the L<manual|App::TestOnTap/"Executable mappings">.
+For more on execmaps, see the L<manual regarding the 'execmap section' config setting|App::TestOnTap/"THE SUITE CONFIG">.
 
 =item B<--archive>, B<--savedirectory E<lt>pathE<gt>> 
 
@@ -125,7 +127,7 @@ in the directory some/path (the directory may or may not exist beforehand).
 Giving only C<--savedirectory some/path>, the result archive will be a regular subdirectory in the
 directory some/path (the directory may or may not exist beforehand).
 
-For details on saved results, see the L<manual|App::TestOnTap/"Work and save directory layout">.
+For details of saved results, see the L<manual regarding 'persisted results'|App::TestOnTap/"PERSISTED RESULT">.
 
 =item B<--define E<lt>keyE<gt>=E<lt>valueE<gt>>
 
@@ -135,23 +137,23 @@ The defines are not made available to tests.
 
 Can be given multiple times.
 
-See the L<manual|App::TestOnTap/"Saved results"> for details on how this information is saved.
-
 =item B<suitepath>
 
 This is the path to the root of the suite. The root must contain a valid I<testontap configuration> file.
  
-For details on test suites, see the L<manual|App::TestOnTap/"Test suites">.
+For details on test suites, see the L<manual|App::TestOnTap/"THE TEST SUITE">.
 
 =item B<suiteargs ...>
 
 Any arguments can be passed, and they will just be passed on as-is to the tests when they start.
 
+For details, see the L<manual on parameter passing|App::TestOnTap/"PARAMETER PASSING">.
+
 =back
 
 =head1 MORE HELP
 
-For more information on TestOnTap, see the full L<manual|App::TestOnTap>, or use I<--manual>
-or run I<perldoc App::TestOnTap> to see the full manual page.
+For full information on TestOnTap, see the L<manual|App::TestOnTap>, or use I<--manual>
+or run I<perldoc App::TestOnTap> to see the manual page.
 
 =cut

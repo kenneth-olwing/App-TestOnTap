@@ -12,6 +12,14 @@ $VERSION = eval $VERSION;
 use App::TestOnTap::Args;
 use App::TestOnTap::Harness;
 
+# These are (known) implicit dependencies, and listing them like this
+# allows scanners like perlapp to pick up on them
+# 
+require TAP::Parser if 0;
+require TAP::Parser::Aggregator if 0;
+require TAP::Parser::Multiplexer if 0;
+require TAP::Formatter::Console::ParallelSession if 0;
+
 # main entry point
 #
 sub main

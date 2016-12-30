@@ -102,10 +102,10 @@ In practice you may find you need even more parts to complete a full test enviro
 in the tests themselves, this application is open enough for you to pass in a number of variable parts - examples would be selecting
 several different JDK versions, or perhaps different incarnations of a database. 
 
-The core mechanism is to use TAP (e.g. "Test Anything Protocol") as the coupling between test executables and the application as
-the test driver, e.g. very similar to when writing regular Perl module tests. To implement this, the standard "Test::*" and "TAP::*"
-families of test modules are used, but with the necessary packaging to provide for the other requirements. Since the 
-interface is 'TAP', any language can be used to write the tests.
+The core mechanism is to use TAP (e.g. "Test Anything Protocol" as defined by L<http://testanything.org>) as the coupling
+between test executables and the application as the test driver, e.g. very similar to when writing regular Perl module tests.
+To implement this, the standard "Test::*" and "TAP::*" families of test modules are used, but with the necessary packaging
+to provide for the other requirements. Since the interface is 'TAP', any language can be used to write the tests.
 
 The definition of a "test suite" includes a configuration file which allows the test suite to directly define which parts of the directory
 tree should not be scanned for possible tests, how to map "test executables" to how to execute them, as well as a dependency description mechanism

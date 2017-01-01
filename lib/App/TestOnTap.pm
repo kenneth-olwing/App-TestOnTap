@@ -5,7 +5,7 @@ use 5.010;
 use strict;
 use warnings;
 
-our $VERSION = '0.001';
+our $VERSION = '0.004';
 my $version = $VERSION;
 $VERSION = eval $VERSION;
 
@@ -54,6 +54,6 @@ App::TestOnTap - Test driver
 
 =head1 VERSION
 
-Version 0.001
+Version 0.004
 
 =cut

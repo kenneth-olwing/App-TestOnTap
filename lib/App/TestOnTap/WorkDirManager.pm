@@ -110,7 +110,7 @@ sub endTestRun
 					real => $elapsed->real(),
 					cpu => $elapsed->cpu_a(),
 				},
-			user => $IS_WINDOWS ? getlogin() : getpwuid($<),
+			user => $IS_WINDOWS ? getlogin() : scalar(getpwuid($<)),
 			host => hostfqdn(),
 			jobs => $args->getJobs(),
 			argv => $args->getArgv(),

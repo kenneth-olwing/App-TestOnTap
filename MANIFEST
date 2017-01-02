@@ -14,6 +14,7 @@ lib/App/TestOnTap/WorkDirManager.pm
 Makefile.PL
 MANIFEST			This list of files
 LICENSE.md
+README.md
 script/testontap
 t/00-load.t
 t/10-empty.t

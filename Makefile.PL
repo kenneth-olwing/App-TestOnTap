@@ -32,7 +32,7 @@ WriteMakefile(
     NAME             => 'App::TestOnTap',
     AUTHOR           => q{Kenneth Olwing <knth@cpan.org>},
     VERSION_FROM     => 'lib/App/TestOnTap.pm',
-    ABSTRACT_FROM    => 'lib/App/TestOnTap.pm',
+    ABSTRACT_FROM    => 'lib/App/TestOnTap.pod',
     LICENSE          => 'artistic_2',
     EXE_FILES         => [ 'script/testontap' ],
 	$eumm_understands_meta_merge

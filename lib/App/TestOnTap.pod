@@ -1,9 +1,13 @@
 =head1 NAME
 
-App::TestOnTap
+App::TestOnTap - Test driver
 
 Run a suite of test 'executables' in a directory tree, summarize
 their TAP output and optionally save the aggregated results for later processing.
+
+=head1 VERSION
+
+Version 0.005
 
 =head1 SYNOPSIS
 

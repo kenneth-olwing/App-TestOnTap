@@ -5,7 +5,7 @@ use 5.010;
 use strict;
 use warnings;
 
-our $VERSION = '0.004';
+our $VERSION = '0.005';
 my $version = $VERSION;
 $VERSION = eval $VERSION;
 
@@ -47,13 +47,3 @@ sub main
 }
 
 1;
-
-=head1 NAME
-
-App::TestOnTap - Test driver 
-
-=head1 VERSION
-
-Version 0.004
-
-=cut

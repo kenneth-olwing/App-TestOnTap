@@ -13,9 +13,9 @@ my ($ret, $stdout, $stderr) = TestUtils::xeqsuite('--verbose');
 
 is($ret, 1, "Exited with 1");
 like($stderr->[0], qr/^WARNING: No configuration file found, using blank with generated id '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'!$/, "Generated id");
-like($stderr->[1], qr/^At least 1 test\(s\) failed!$/, "Expected failure");
+like($stderr->[5], qr/^At least 1 test\(s\) failed!$/, "Expected failure");
 like($stdout->[3], qr/^not ok 2 - Won't work\.\.\.$/, "Fail in 2");
-like($stdout->[17], qr/^Files=1, Tests=3, /, "Only one file with three tests found");
-is($stdout->[18], "Result: FAIL", "Failed");
+like($stdout->[13], qr/^Files=1, Tests=3, /, "Only one file with three tests found");
+is($stdout->[14], "Result: FAIL", "Failed");
 
 done_testing();

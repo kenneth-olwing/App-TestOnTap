@@ -121,7 +121,7 @@ sub endTestRun
 	$self->__save("$self->{root}/data/meta", $meta);
 }
 
-sub openTapHandle
+sub openTAPHandle
 {
 	my $self = shift;
 	my $testPath = slashify(shift, '/');
@@ -133,6 +133,17 @@ sub openTapHandle
 	open(my $h, '>', $tapPath) or die("Failed to open '$tapPath': $!");
 	
 	return $h;
+}
+
+sub closeTAPHandle
+{
+	my $self = shift;
+	my $parser = shift;
+	
+	my $spool_handle = $parser->delete_spool;
+	close($spool_handle) if $spool_handle;
+	
+	return;
 }
 
 sub getResultCollector

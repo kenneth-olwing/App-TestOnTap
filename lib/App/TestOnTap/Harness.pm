@@ -16,13 +16,12 @@ sub new
 {
 	my $class = shift;
 	my $args = shift;
-	
+
 	my $self = $class->SUPER::new
 								(
 									{
 										formatter => __getFormatter($args),
 										jobs => $args->getJobs(),
-										merge => 1,
 										callbacks => { after_test => $args->getWorkDirManager()->getResultCollector() },
 										'exec' => __getExecMapper($args),
 										scheduler_class => 'App::TestOnTap::Scheduler'
@@ -73,7 +72,17 @@ sub _open_spool
 	my $self = shift;
 	my $testpath = shift;
 
-	return $self->{testontap}->{args}->getWorkDirManager()->openTapHandle($testpath);
+	return $self->{testontap}->{args}->getWorkDirManager()->openTAPHandle($testpath);
+}
+
+sub _close_spool
+{
+    my $self = shift;
+    my $parser = shift;;
+
+	$self->{testontap}->{args}->getWorkDirManager()->closeTAPHandle($parser);
+
+	return; 
 }
 
 sub __getExecMapper

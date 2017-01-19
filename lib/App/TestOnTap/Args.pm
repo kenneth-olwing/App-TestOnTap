@@ -230,7 +230,7 @@ sub getVerbose
 {
 	my $self = shift;
 	
-	return $self->{verbose};
+	return $self->{v};
 }
 
 sub getSuiteRoot

@@ -12,7 +12,7 @@ use App::TestOnTap::ExecMap;
 use App::TestOnTap::Config;
 use App::TestOnTap::WorkDirManager;
 
-use Getopt::Long qw(GetOptionsFromArray :config require_order no_ignore_case);
+use Getopt::Long qw(GetOptionsFromArray :config require_order no_ignore_case bundling);
 use Pod::Usage;
 use Pod::Find qw(pod_where);
 use Grep::Query;
@@ -53,7 +53,7 @@ sub __parseArgv
 			workdirectory => undef,		# explicit directory to use
 			savedirectory => undef,		# don't save results (unless -archive is used)
 			archive => 0,				# don't save results as archive
-			verbose => 0,				# don't let through output from tests
+			v => 0,						# don't let through output from tests
 		);
 		
 	my @specs =
@@ -70,7 +70,7 @@ sub __parseArgv
 			'workdirectory=s',
 			'savedirectory=s',
 			'archive!',
-			'verbose!'
+			'v|verbose'
 		);
 
 	my $argsPodInput = pod_where( { -inc => 1 }, 'App::TestOnTap::Args');
@@ -170,7 +170,7 @@ sub __parseArgv
 
 	# simple copies
 	#
-	$self->{$_} = $rawOpts{$_} foreach (qw(verbose archive defines timer));
+	$self->{$_} = $rawOpts{$_} foreach (qw(v archive defines timer));
 
 	# keep the rest of the argv as-is
 	#

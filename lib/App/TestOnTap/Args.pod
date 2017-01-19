@@ -16,7 +16,7 @@ Commandline options and arguments understood for TestOnTap processing
             |
         --version
     ]
-    [ --verbose ]
+    [ -v | --verbose [ -v ... ] ]
     [ --workdirectory <path> ]
     [ --include <query> ]
     [ --jobs <n> ]
@@ -62,11 +62,14 @@ Displays the script name and version information.
 
 =back
 
-=item B<--verbose>
+=item B<-v>, B<--verbose>
 
 By default, the output will be regular test output after consuming TAP (e.g. timings, ok/fail messages, summary etc).
 
 Using this option allows the pass through of more verbose output from the tests themselves.
+
+To up verbosity, add one or more verbose flags (bundling for singlecharacter options is on, so '-vvv' is the same as
+'-v -v -v'). Currently, up to verbosity level 1 is used.
 
 =item B<--workdirectory E<lt>pathE<gt>>
 

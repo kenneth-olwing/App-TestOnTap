@@ -14,4 +14,4 @@ file. If this is put into the test suite, you probably want to set an include
 in the config so this jar is not attempted to run. Vice versa, for java code
 that does tests, you should package them in jars and set the Main-Class (to
 ensure the main class is started) and the Class-Path (to find the TAPGenerator)
-attributes in the manifest. See the SampleJavaSuite extra.
+attributes in the manifest. See the SampleSuite extra.

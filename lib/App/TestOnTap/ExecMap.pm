@@ -72,7 +72,7 @@ sub __parseExecMap
 
 sub __defaultCfg
 {
-	# TODO: add useful standard mappings here
+	# TODO: add more useful standard mappings here
 	#
 	return
 		{

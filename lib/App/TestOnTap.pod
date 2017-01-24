@@ -697,6 +697,11 @@ or broken TAP, and if so, should show up with parse errors in the summary).
 
 =back
 
+=head EXTRAS
+
+Review the 'extras' directory in the distribution for some examples, specifically Java code
+to help generate TAP streams, either directly or together with JUnit.
+
 =head1 AUTHOR
 
 Kenneth Olwing, C<< <knth at cpan.org> >>

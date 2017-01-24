@@ -35,12 +35,13 @@ When a sub branch is completed it will be merged back to it's parent, e.g. the '
   * v0.004 on 2017-01-01
   * v0.005 on 2017-01-02
   * v0.006 on 2017-01-19
+  * v0.007 on 2017-01-24
 
 ### Active branches
   * **master**  
     For maintenance of this document only.
   * **0.xxx**  
-    For work aimed at v0.007
+    For work aimed at v0.008
   * **x**  
     For work aimed at v1.000
 

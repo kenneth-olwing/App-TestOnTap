@@ -1,3 +1,5 @@
+use 5.010_001;
+
 use strict;
 use warnings;
 
@@ -34,6 +36,7 @@ WriteMakefile(
     VERSION_FROM     => 'lib/App/TestOnTap.pm',
     ABSTRACT_FROM    => 'lib/App/TestOnTap.pod',
     LICENSE          => 'artistic_2',
+    MIN_PERL_VERSION => 5.010_001, 
     EXE_FILES         => [ 'script/testontap' ],
 	$eumm_understands_meta_merge
 		? (

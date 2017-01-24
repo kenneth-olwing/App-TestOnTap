@@ -9,6 +9,11 @@ public class JUnit2TAP
 {
 	static public void main(String... args)
 	{
+		System.exit(run(args));
+	}
+	
+	static public int run(String...args)
+	{
 		List<String> classnames = new ArrayList<String>();
 		int verbosity = 0;
 		Pattern verbosityPattern = Pattern.compile("^verbosity=(\\d+)$");
@@ -31,6 +36,6 @@ public class JUnit2TAP
 			System.err.println(e);
 		}
 
-		System.exit(ok ? 0 : 1);
+		return(ok ? 0 : 1);
 	}
 }

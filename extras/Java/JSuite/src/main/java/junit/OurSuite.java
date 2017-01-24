@@ -5,7 +5,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
 @RunWith(Suite.class)
-@Suite.SuiteClasses({ SuitePart1.class, SuitePart2.class })
+@Suite.SuiteClasses({ SuitePart1.class, SuitePart2.class, SuitePartRandomPassFail.class })
 
 public class OurSuite
 {

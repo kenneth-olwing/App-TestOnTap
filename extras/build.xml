@@ -9,6 +9,8 @@
 	<property name="tapgenroot" location="Java/TAPGenerator"/>
 	<property name="jsuiteroot" location="Java/JSuite"/>
 
+	<property name="psuiteroot" location="Perl/PSuite"/>
+
 	<property name="junit-jar" location="path-to-junit-jar"/>
 	<property name="hamcrest-jar" location="path-to-hamcrest-jar"/>
 
@@ -32,6 +34,16 @@
 			<fileset dir="${libroot}" includes="*.jar"/>
 		</path>
 
+		<javac srcdir="${jsuiteroot}/src/main/java" destdir="build/classes" includeantruntime="false">
+			<classpath refid="libcp"/>
+		</javac>
+
+		<jar destfile="${libroot}/suiteparts.jar">
+			<fileset dir="${classesroot}">
+				<include name="**/SuitePart*.class"/>
+			</fileset>
+		</jar>
+		
 		<manifestclasspath property="libcpjar" jarfile="${libroot}/cp.jar">
 			<classpath refid="libcp"/>
 		</manifestclasspath>
@@ -42,20 +54,19 @@
 			</manifest>
 		</jar>
 			
-		<javac srcdir="${jsuiteroot}/src/main/java" destdir="build/classes" includeantruntime="false">
-			<classpath refid="libcp"/>
-		</javac>
-		
 		<ac:foreach target="-class2execjar" param="testclassfile">
 			<param name="libcpjar" value="${libcpjar}"/>
 			<path>
 				<fileset dir="${classesroot}">
 					<include name="**/*.class"/>
 					<exclude name="**/SuitePart*.class"/>
-					<exclude name="**/OurSuite.class"/>
 				</fileset>
 			</path>
 		</ac:foreach>
+		
+		<copy todir="${suiteroot}">
+			<fileset dir="${psuiteroot}/src/main/perl"/>
+		</copy>
 		
 		<echo file="${suiteroot}/config.testontap">
 id = be5cc88f-dd93-11e6-ba12-bbd85680ace1
@@ -72,7 +83,6 @@ parallelizable = regexp(.*)
 	
 	<target name="-class2execjar">
 		
-		<echo message="libcpjar=${libcpjar}"></echo>
 		<pathconvert dirsep="/" property="testclassfile_fwslash">
 			<path>
 				<pathelement path="${testclassfile}"/>

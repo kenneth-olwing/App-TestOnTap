@@ -9,7 +9,7 @@ public class SuitePart2
 	@Test
 	public void simpleTruth()
 	{
-		assertTrue(true);
+		assertTrue(false);
 	}
 
 }

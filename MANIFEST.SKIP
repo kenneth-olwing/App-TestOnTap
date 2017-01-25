@@ -9,3 +9,4 @@ App-TestOnTap-\d+\.\d\d\d/
 \.ignore/
 Makefile.old
 tmp/
+/build/

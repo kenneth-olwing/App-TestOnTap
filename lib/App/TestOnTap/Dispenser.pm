@@ -25,7 +25,7 @@ sub __analyze
 	my $self = shift;
 
 	# find all tests in the suite root
-	# (subject to config include filtering)
+	# (subject to config skip filtering)
 	#	
 	my $tests = __scan($self->{args}->getSuiteRoot(), $self->{args}->getConfig());
 
@@ -49,7 +49,7 @@ sub __analyze
 	#
 	$self->{graph} = \%graph;
 	
-	# if user decided to supply an include filter, now try to create a
+	# if user decided to supply a skip filter, now try to create a
 	# graph filtered to matching tests, but without including dependencies...
 	#
 	my $prunedTests = $self->{args}->include($tests);
@@ -175,7 +175,7 @@ sub getEligibleTests
 #
 
 # scan the suite root and find all tests
-# (subject to the config include filter)
+# (subject to the config skip filter)
 #
 sub __scan
 {
@@ -189,7 +189,7 @@ sub __scan
 	my $srfs = slashify($suiteRoot, '/');
 	
 	# set up a File::Find preprocessor in order to weed out parts of the scanned tree
-	# that are not selected by the config include filter
+	# that are selected by the optional config skip filter
 	#
 	my $preprocess =
 		sub
@@ -217,7 +217,7 @@ sub __scan
 				my $p = slashify("$File::Find::dir/$entry", '/');
 				$p .= '/' if -d $p;
 				$p =~ s#^\Q$srfs\E/##;
-				next unless $config->include($p);
+				next if $config->skip($p);
 				
 				push(@keep, $entry);
 			}

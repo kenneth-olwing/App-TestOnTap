@@ -104,13 +104,6 @@ sub get_job
 	return $job;
 }
 
-sub as_string
-{
-	my $self = shift;
-	
-	return 'NIY';
-}
-
 sub __finish
 {
 	my $self = shift;

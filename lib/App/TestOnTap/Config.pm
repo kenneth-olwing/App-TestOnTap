@@ -57,17 +57,17 @@ sub __readCfgFile
 	die("Invalid suite id: '$id'") unless $id =~ /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
 	$self->{id} = $id;
 	
-	# an optional filter to select parts while scanning suite root
+	# an optional filter to skip parts while scanning suite root
 	#
 	# ensure it's in text form - an array is simply joined using newlines
 	#
-	my $include = $blankSection->{include};
-	if (defined($include))
+	my $skip = $blankSection->{skip};
+	if (defined($skip))
 	{
-		$include = join("\n", @$include) if ref($include) eq 'ARRAY';
-		$include = Grep::Query->new($include);
+		$skip = join("\n", @$skip) if ref($skip) eq 'ARRAY';
+		$skip = Grep::Query->new($skip);
 	}
-	$self->{include} = $include;
+	$self->{skip} = $skip;
 
 	# an optional filter to check if a test can run in parallel (with any other test) 
 	#
@@ -131,15 +131,15 @@ sub getId
 	return $self->{id};
 }
 
-sub include
+sub skip
 {
 	my $self = shift;
 	my $test = shift;
 	
 	return
-		$self->{include}
-			? $self->{include}->qgrep($test)
-			: 1;
+		$self->{skip}
+			? $self->{skip}->qgrep($test)
+			: 0;
 }
 
 sub hasParallelizableRule

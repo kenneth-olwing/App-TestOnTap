@@ -172,22 +172,22 @@ Example:
 
   id = 61d4c8c3-c827-11e6-a3f8-bea3de08f558
 
-=item B<include>
+=item B<skip>
 
 This is optional. The value is a L<Grep::Query> expression, and can be multi-line/part for readability.
 
-If not present, it effectively defaults to include all files, assuming they match given extensions in the
-"exec mapping" (see below).
+If not present, all files/parts of the tree are included/searched for matches given extensions in
+the "exec mapping" (see below)).
 
 This is useful for excluding parts of the suite tree, e.g. parts which are merely data to be used by the tests and
 that may contain files with extensions that would otherwise be mistaken for active tests.
 
-As the suite is scanned for tests, paths will be tested against the query, and if not selected, will be pruned
+As the suite is scanned for tests, paths will be tested against the query, and if matching, will be pruned
 completely from the set of possible tests. In particular, not selecting a directory will prune the entire subtree.
 
 Example:
 
-  include = not eq(unfinished_test.pl) and not regexp{^(.*/)?_data/$}
+  skip = eq(unfinished_test.pl) or regexp{^(.*/)?_data/$}
   
 This would avoid the 'unfinished_test.pl' file and contents of any '_data' directories at any level of the suite.
  
@@ -255,7 +255,7 @@ If no "EXECMAP" section is present, a default one will be used, equivalent to th
   sh = /bin/sh
 
 While useful in the early stages for quickly getting started, good form is to ensure the execmap is explicit, avoiding
-surprises if other extensions are added to the default, and also to use the "include" key to ensure only expected files are
+surprises if other extensions are added to the default, and also to use the "skip" key to ensure only expected files are
 selected as tests regardless.
 
 =item B<[DEPENDENCY E<lt>nameE<gt>]> (section)

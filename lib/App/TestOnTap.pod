@@ -113,7 +113,7 @@ to provide for the other requirements. Since the interface is 'TAP', any languag
 
 The definition of a "test suite" includes a configuration file which allows the test suite to directly define which parts of the directory
 tree should not be scanned for possible tests, how to map "test executables" to how to execute them, as well as a dependency description mechanism
-for describing required dependencies between tests.  
+for describing required dependencies between tests.
 
 =head1 THE TEST SUITE
 
@@ -138,7 +138,11 @@ However, the test suite should preferably as soon as possible be given a config 
 
 =head2 THE SUITE CONFIG
 
-A test suite is configured by putting the file F<config.testontap> in the root of the suite.
+A test suite is configured by putting the file F<config.testontap> in the root of the suite. It is
+technically optional, as the only required part (test id) will be generated for each run.
+However, while this can be useful just to try things out, it makes it impossible to use any persisted
+results properly, and obviously will make some functionality unavailable, so it quickly becomes desirable
+to put one in.
 
 The standard module used for reading this file is L<Config::Std>, please consult this module for
 general information on the format. In particular, some keys allows multi-line and/or multi-part values.

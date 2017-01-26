@@ -18,7 +18,7 @@ Commandline options and arguments understood for TestOnTap processing
     ]
     [ -v | --verbose [ -v ... ] ]
     [ --workdirectory <path> ]
-    [ --include <query> ]
+    [ --skip <query> ]
     [ --jobs <n> ]
     [ --timer ]
     [ --execmap <mapfile> ]
@@ -81,15 +81,15 @@ The path must not exist beforehand.
 
 For details of the work directory, see the L<manual regarding 'persisted results'|App::TestOnTap/"PERSISTED RESULT">.
 
-=item B<--include E<lt>queryE<gt>>
+=item B<--skip E<lt>queryE<gt>>
 
-By default, all tests will be run (subject to selection by the C<execmap> in effect and the internally configured include).
+By default, all tests will be run (subject to selection by the C<execmap> in effect and the internally configured skip).
 
-By providing a I<query>, a subset of those tests can be manually selected. However, be aware that B<actual> tests selected
-are also subject to any dependencies declared between tests - e.g. a query selecting only test A will effectively also
-select test B if there is a A => B dependency in the config.
+By providing a I<query>, a subset of those tests can be skipped. However, be aware that the B<actual> tests selected
+are also subject to any dependencies declared between tests - e.g. a query skipping test Z will still 
+select test Z if there is a Y => Z dependency in the config.
 
-For more on selecting tests, see the L<manual regarding the 'include' config setting|App::TestOnTap/"THE SUITE CONFIG">.
+For more on selecting tests, also see the L<manual regarding the 'skip' config setting|App::TestOnTap/"THE SUITE CONFIG">.
 
 =item B<--jobs E<lt>nE<gt>>
 

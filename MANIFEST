@@ -69,6 +69,7 @@ extras/Perl/PSuite/src/main/perl/Random9.pl
 extras/Perl/PSuite/src/main/perl/SimpleFail.pl
 extras/Perl/PSuite/src/main/perl/SimplePass.pl
 script/testontap
+t/config.testontap
 t/00-load.t
 t/10-empty.t
 t/11-fail.t

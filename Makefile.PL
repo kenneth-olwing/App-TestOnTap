@@ -24,7 +24,6 @@ my $test_requires =
 		'Archive::Zip'	=>	1.47,	# 1.30 misbehaves in t\21-verify_saved_archive.t
 		'Test::More'	=>	0,		# initial dev used: 1.001014
 		'Capture::Tiny'	=>	0,		# initial dev used: 0.30
-		'FindBin'		=>	0,		# initial dev used: 1.51 
 	};
 
 my $eumm_understands_meta_merge = $ExtUtils::MakeMaker::VERSION ge '6.46';
@@ -77,12 +76,12 @@ WriteMakefile(
 			'File::Slurp'						=>	0,		# initial dev used: 9999.19
 			'File::Spec'						=>	0,		# initial dev used: 3.48_01
 			'File::Temp'						=>	0,		# initial dev used: 0.2304
+			'FindBin'							=>	0,		# initial dev used: 1.51 
 			'Getopt::Long'						=>	0,		# initial dev used: 2.47
 			'Grep::Query'						=>	0,		# initial dev used: 1.002
 			'JSON'								=>	0,		# initial dev used: 2.90
 			'Net::Domain'						=>	0,		# initial dev used: 3.07
 			'POSIX'								=>	0,		# initial dev used: 1.38_03
-			'Pod::Find'							=>	0,		# initial dev used: 1.63
 			'Pod::Usage'						=>	0,		# initial dev used: 1.67
 			'TAP::Formatter::Console'			=>	0,		# initial dev used: 3.35
 			'TAP::Formatter::File'				=>	0,		# initial dev used: 3.35

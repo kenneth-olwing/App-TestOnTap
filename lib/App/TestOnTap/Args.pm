@@ -7,15 +7,16 @@ package App::TestOnTap::Args;
 use strict;
 use warnings;
 
-use App::TestOnTap::Util qw(slashify);
+use App::TestOnTap::Util qw(slashify $IS_WINDOWS);
 use App::TestOnTap::ExecMap;
 use App::TestOnTap::Config;
 use App::TestOnTap::WorkDirManager;
 
+use FindBin qw($RealBin $Script);
 use Getopt::Long qw(GetOptionsFromArray :config require_order no_ignore_case bundling);
 use Pod::Usage;
-use Pod::Find qw(pod_where);
 use Grep::Query;
+use File::Basename;
 use File::Spec;
 use File::Path;
 use UUID::Tiny qw(:std);
@@ -54,6 +55,10 @@ sub __parseArgv
 			savedirectory => undef,		# don't save results (unless -archive is used)
 			archive => 0,				# don't save results as archive
 			v => 0,						# don't let through output from tests
+			
+			# undoc
+			#
+			_pp => undef				# make a binary using pp
 		);
 		
 	my @specs =
@@ -70,12 +75,16 @@ sub __parseArgv
 			'workdirectory=s',
 			'savedirectory=s',
 			'archive!',
-			'v|verbose'
+			'v|verbose+',
+			
+			# undoc
+			#
+			'_pp:s',
 		);
 
-	my $argsPodInput = pod_where( { -inc => 1 }, 'App::TestOnTap::Args');
-	my $manualPodInput = pod_where( { -inc => 1 }, 'App::TestOnTap');
-	 
+	my $argsPodInput = $self->__findPod('App/TestOnTap/Args.pod');
+	my $manualPodInput = $self->__findPod('App/TestOnTap.pod');
+	
 	# for consistent error handling below, trap getopts problems
 	# 
 	eval
@@ -87,6 +96,14 @@ sub __parseArgv
 	{
 		pod2usage(-input => $argsPodInput, -message => "Failure parsing options:\n  $@", -exitval => 255, -verbose => 0);
 	}
+
+	# simple copies
+	#
+	$self->{$_} = $rawOpts{$_} foreach (qw(v archive defines timer));
+
+	# for the special selection of running pp, do this first, and it will not return
+	#
+	$self->__createBinary($rawOpts{_pp}, $rawOpts{v}, $version, $argsPodInput, $manualPodInput) if (defined($rawOpts{_pp}));
 
 	# if any of the doc switches made, display the pod
 	#
@@ -175,10 +192,6 @@ sub __parseArgv
 	{
 		pod2usage(-message => "Failure setting up the working directory:\n  $@", -exitval => 255, -verbose => 0);
 	};
-
-	# simple copies
-	#
-	$self->{$_} = $rawOpts{$_} foreach (qw(v archive defines timer));
 
 	# keep the rest of the argv as-is
 	#
@@ -278,6 +291,70 @@ sub include
 		$self->{include}
 			? [ $self->{include}->qgrep(@$tests) ]
 			: undef;
+}
+
+# PRIVATE
+#
+
+sub __createBinary
+{
+	my $self = shift;
+	my $bin = shift;
+	my $verbosity = shift;
+	my $version = shift;
+	my $argsPodInput = shift;
+	my $manualPodInput = shift;
+	
+	eval "require PAR::Packer";
+	die("Sorry, it appears PAR::Packer is not installed\n  $@\n") if $@;
+	
+	my $exeSuffix = $IS_WINDOWS ? '.exe' : '';
+	$bin = slashify(File::Spec->rel2abs($bin ? $bin : "$Script-$version$exeSuffix"));
+	
+	die("The path '$bin' already exists\n") if -e $bin;
+	
+	my $argsPodOutput = slashify($argsPodInput, '/');
+	$argsPodOutput =~ s#.*/lib/(.+)#lib/$1#;
+	
+	my $manualPodOutput = slashify($manualPodInput, '/');
+	$manualPodOutput =~ s#.*/lib/(.+)#lib/$1#;
+	
+	my @vs = $verbosity ? ('-', 'v' x $verbosity) : ();
+	my @cmd = ('pp', @vs, '-a', "$argsPodInput;$argsPodOutput", '-a', "$manualPodInput;$manualPodOutput", '-o', $bin, slashify("$RealBin/$Script"));
+
+	if ($verbosity)
+	{
+		print "Running:\n";
+		print "  $_\n" foreach (@cmd);
+	}
+	
+	my $xit = system(@cmd) >> 8;
+	die("Problems creating binary '$bin': '$xit'") if ($xit || !-f $bin);
+	
+	print "Created '$bin'!\n";
+	
+	exit(0);
+}
+
+sub __findPod
+{
+	my $self = shift;
+	my $pod = shift;
+
+	my $input;	
+	foreach my $inc (@INC)
+	{
+		my $loc = "$inc/$pod";
+		if (-e $loc)
+		{
+			$input = slashify(File::Spec->rel2abs($loc));
+			last;
+		}
+	}
+	
+	die("Pod not found: '$pod'\n") unless $input;
+	
+	return $input;
 }
 
 1;

@@ -20,6 +20,7 @@ use Grep::Query;
 use File::Basename;
 use File::Spec;
 use File::Path;
+use POSIX;
 use UUID::Tiny qw(:std);
 
 # CTOR
@@ -57,15 +58,18 @@ sub __parseArgv
 			archive => 0,				# don't save results as archive
 			v => 0,						# don't let through output from tests
 			
-			# undoc
+			# hidden
 			#
-			_pp => undef				# make a binary using pp
+			_help => 0,
+			_pp => 0,					# make a binary using pp
+			'_pp-output' => undef,		# binary name
+			'_pp-force' => 0,			# overwrite existing file
 		);
 		
 	my @specs =
 		(
 			'usage|?',
-			'help',
+			'help|h',
 			'manual',
 			'version',
 			'execmap=s',
@@ -78,11 +82,16 @@ sub __parseArgv
 			'archive!',
 			'v|verbose+',
 			
-			# undoc
+			# hidden
 			#
-			'_pp:s',
+			'_help',
+			'_pp',
+			'_pp-output=s',
+			'_pp-force!',
 		);
 
+	my $_argsPodName = 'App/TestOnTap/_Args.pod';
+	my $_argsPodInput = Pod::Simple::Search->find($_argsPodName);
 	my $argsPodName = 'App/TestOnTap/Args.pod';
 	my $argsPodInput = Pod::Simple::Search->find($argsPodName);
 	my $manualPodName = 'App/TestOnTap.pod';
@@ -104,9 +113,21 @@ sub __parseArgv
 	#
 	$self->{$_} = $rawOpts{$_} foreach (qw(v archive defines timer));
 
+	# help with the hidden flags...
+	#
+	pod2usage(-input => $_argsPodInput, -exitval => 0, -verbose => 2, -noperldoc => 1) if $rawOpts{_help};
+
 	# for the special selection of running pp, do this first, and it will not return
 	#
-	$self->__createBinary($rawOpts{_pp}, $rawOpts{v}, $version, $argsPodName, $argsPodInput, $manualPodName, $manualPodInput) if (defined($rawOpts{_pp}));
+	$self->__createBinary
+				(
+					$rawOpts{'_pp-output'},
+					$rawOpts{'_pp-force'},
+					$rawOpts{v},
+					$version,
+					$argsPodName, $argsPodInput,
+					$manualPodName, $manualPodInput
+				) if (defined($rawOpts{_pp}));
 
 	# if any of the doc switches made, display the pod
 	#
@@ -302,7 +323,8 @@ sub include
 sub __createBinary
 {
 	my $self = shift;
-	my $bin = shift;
+	my $output = shift || '.';
+	my $force = shift;
 	my $verbosity = shift;
 	my $version = shift;
 	my $argsPodName = shift;
@@ -314,15 +336,35 @@ sub __createBinary
 	
 	eval "require PAR::Packer";
 	die("Sorry, it appears PAR::Packer is not installed\n  $@\n") if $@;
-	
+
+	my $os = $IS_WINDOWS ? 'windows' : $^O;
+	my $arch = (POSIX::uname())[4]; 
 	my $exeSuffix = $IS_WINDOWS ? '.exe' : '';
-	$bin = slashify(File::Spec->rel2abs($bin ? $bin : "$Script-$version$exeSuffix"));
+	if (-d $output)
+	{
+		$output = slashify(File::Spec->rel2abs("$output/$Script-$version-$os-$arch$exeSuffix"));
+	}
+	else
+	{
+		$output = slashify(File::Spec->rel2abs($output));
+	}
 	
-	die("The path '$bin' already exists\n") if -e $bin;
-	
-	my @vs = $verbosity ? ('-' . 'v' x $verbosity) : ();
+	die("The path '$output' already exists\n") if (!$force && -e $output);
+	unlink($output);
+	die("Attempt to forcible remove '$output' failed: $!\n") if -e $output;
+		
+	my @vs = $verbosity > 1 ? ('-' . 'v' x ($verbosity - 1)) : ();
 	my @liblocs = map { $_ ne '.' ? ('-I', slashify(File::Spec->rel2abs($_))) : () } @INC;
-	my @cmd = ('pp', @vs, @liblocs, '-a', "$argsPodInput;lib/$argsPodName", '-a', "$manualPodInput;lib/$manualPodName", '-o', $bin, slashify("$RealBin/$Script"));
+	my @cmd =
+		(
+			'pp',
+			@vs,
+			@liblocs,
+			'-a', "$argsPodInput;lib/$argsPodName",
+			'-a', "$manualPodInput;lib/$manualPodName",
+			'-o', $output,
+			slashify("$RealBin/$Script")
+		);
 
 	if ($verbosity)
 	{
@@ -331,9 +373,9 @@ sub __createBinary
 	}
 	
 	my $xit = system(@cmd) >> 8;
-	die("Problems creating binary '$bin': '$xit'") if ($xit || !-f $bin);
+	die("Problems creating binary '$output': '$xit'") if ($xit || !-f $output);
 	
-	print "Created '$bin'!\n";
+	print "Created '$output'!\n";
 	
 	exit(0);
 }

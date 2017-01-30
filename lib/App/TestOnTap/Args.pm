@@ -321,7 +321,8 @@ sub __createBinary
 	die("The path '$bin' already exists\n") if -e $bin;
 	
 	my @vs = $verbosity ? ('-' . 'v' x $verbosity) : ();
-	my @cmd = ('pp', @vs, '-a', "$argsPodInput;lib/$argsPodName", '-a', "$manualPodInput;lib/$manualPodName", '-o', $bin, slashify("$RealBin/$Script"));
+	my @liblocs = map { $_ ne '.' ? ('-I', slashify(File::Spec->rel2abs($_))) : () } @INC;
+	my @cmd = ('pp', @vs, @liblocs, '-a', "$argsPodInput;lib/$argsPodName", '-a', "$manualPodInput;lib/$manualPodName", '-o', $bin, slashify("$RealBin/$Script"));
 
 	if ($verbosity)
 	{

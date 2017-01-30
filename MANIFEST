@@ -4,6 +4,7 @@ lib/App/TestOnTap.pod
 lib/App/TestOnTap/_dbgvars.pm
 lib/App/TestOnTap/Args.pm
 lib/App/TestOnTap/Args.pod
+lib/App/TestOnTap/_Args.pod
 lib/App/TestOnTap/Dispenser.pm
 lib/App/TestOnTap/Config.pm
 lib/App/TestOnTap/ExecMap.pm

@@ -127,7 +127,7 @@ sub __parseArgv
 					$version,
 					$argsPodName, $argsPodInput,
 					$manualPodName, $manualPodInput
-				) if (defined($rawOpts{_pp}));
+				) if ($rawOpts{_pp});
 
 	# if any of the doc switches made, display the pod
 	#

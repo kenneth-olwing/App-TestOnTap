@@ -15,6 +15,7 @@ use App::TestOnTap::WorkDirManager;
 use FindBin qw($RealBin $Script);
 use Getopt::Long qw(GetOptionsFromArray :config require_order no_ignore_case bundling);
 use Pod::Usage;
+use Pod::Simple::Search;
 use Grep::Query;
 use File::Basename;
 use File::Spec;
@@ -82,8 +83,10 @@ sub __parseArgv
 			'_pp:s',
 		);
 
-	my $argsPodInput = $self->__findPod('App/TestOnTap/Args.pod');
-	my $manualPodInput = $self->__findPod('App/TestOnTap.pod');
+	my $argsPodName = 'App/TestOnTap/Args.pod';
+	my $argsPodInput = Pod::Simple::Search->find($argsPodName);
+	my $manualPodName = 'App/TestOnTap.pod';
+	my $manualPodInput = Pod::Simple::Search->find($manualPodName);
 	
 	# for consistent error handling below, trap getopts problems
 	# 
@@ -103,7 +106,7 @@ sub __parseArgv
 
 	# for the special selection of running pp, do this first, and it will not return
 	#
-	$self->__createBinary($rawOpts{_pp}, $rawOpts{v}, $version, $argsPodInput, $manualPodInput) if (defined($rawOpts{_pp}));
+	$self->__createBinary($rawOpts{_pp}, $rawOpts{v}, $version, $argsPodName, $argsPodInput, $manualPodName, $manualPodInput) if (defined($rawOpts{_pp}));
 
 	# if any of the doc switches made, display the pod
 	#
@@ -302,7 +305,9 @@ sub __createBinary
 	my $bin = shift;
 	my $verbosity = shift;
 	my $version = shift;
+	my $argsPodName = shift;
 	my $argsPodInput = shift;
+	my $manualPodName = shift;
 	my $manualPodInput = shift;
 	
 	die("Sorry, you're already running a binary/packed instance\n") if $IS_PACKED;
@@ -315,14 +320,8 @@ sub __createBinary
 	
 	die("The path '$bin' already exists\n") if -e $bin;
 	
-	my $argsPodOutput = slashify($argsPodInput, '/');
-	$argsPodOutput =~ s#.*/lib/(.+)#lib/$1#;
-	
-	my $manualPodOutput = slashify($manualPodInput, '/');
-	$manualPodOutput =~ s#.*/lib/(.+)#lib/$1#;
-	
 	my @vs = $verbosity ? ('-' . 'v' x $verbosity) : ();
-	my @cmd = ('pp', @vs, '-a', "$argsPodInput;$argsPodOutput", '-a', "$manualPodInput;$manualPodOutput", '-o', $bin, slashify("$RealBin/$Script"));
+	my @cmd = ('pp', @vs, '-a', "$argsPodInput;lib/$argsPodName", '-a', "$manualPodInput;lib/$manualPodName", '-o', $bin, slashify("$RealBin/$Script"));
 
 	if ($verbosity)
 	{
@@ -336,27 +335,6 @@ sub __createBinary
 	print "Created '$bin'!\n";
 	
 	exit(0);
-}
-
-sub __findPod
-{
-	my $self = shift;
-	my $pod = shift;
-
-	my $input;	
-	foreach my $inc (@INC)
-	{
-		my $loc = "$inc/$pod";
-		if (-e $loc)
-		{
-			$input = slashify(File::Spec->rel2abs($loc));
-			last;
-		}
-	}
-	
-	die("Pod not found: '$pod'\n") unless $input;
-	
-	return $input;
 }
 
 1;

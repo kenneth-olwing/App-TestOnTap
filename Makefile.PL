@@ -82,6 +82,7 @@ WriteMakefile(
 			'JSON'								=>	0,		# initial dev used: 2.90
 			'Net::Domain'						=>	0,		# initial dev used: 3.07
 			'POSIX'								=>	0,		# initial dev used: 1.38_03
+			'Pod::Simple::Search'				=>	0,		# initial dev used: 3.35 
 			'Pod::Usage'						=>	0,		# initial dev used: 1.67
 			'TAP::Formatter::Console'			=>	0,		# initial dev used: 3.35
 			'TAP::Formatter::File'				=>	0,		# initial dev used: 3.35

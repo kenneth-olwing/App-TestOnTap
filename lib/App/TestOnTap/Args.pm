@@ -7,7 +7,7 @@ package App::TestOnTap::Args;
 use strict;
 use warnings;
 
-use App::TestOnTap::Util qw(slashify $IS_WINDOWS);
+use App::TestOnTap::Util qw(slashify $IS_WINDOWS $IS_PACKED);
 use App::TestOnTap::ExecMap;
 use App::TestOnTap::Config;
 use App::TestOnTap::WorkDirManager;
@@ -305,6 +305,8 @@ sub __createBinary
 	my $argsPodInput = shift;
 	my $manualPodInput = shift;
 	
+	die("Sorry, you're already running a binary/packed instance\n") if $IS_PACKED;
+	
 	eval "require PAR::Packer";
 	die("Sorry, it appears PAR::Packer is not installed\n  $@\n") if $@;
 	
@@ -319,7 +321,7 @@ sub __createBinary
 	my $manualPodOutput = slashify($manualPodInput, '/');
 	$manualPodOutput =~ s#.*/lib/(.+)#lib/$1#;
 	
-	my @vs = $verbosity ? ('-', 'v' x $verbosity) : ();
+	my @vs = $verbosity ? ('-' . 'v' x $verbosity) : ();
 	my @cmd = ('pp', @vs, '-a', "$argsPodInput;$argsPodOutput", '-a', "$manualPodInput;$manualPodOutput", '-o', $bin, slashify("$RealBin/$Script"));
 
 	if ($verbosity)

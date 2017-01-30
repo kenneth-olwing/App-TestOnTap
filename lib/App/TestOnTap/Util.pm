@@ -6,7 +6,8 @@ use warnings;
 use POSIX qw(strftime);
 use File::Basename;
 
-our $IS_WINDOWS = $^O eq 'MSWin32'; 
+our $IS_WINDOWS = $^O eq 'MSWin32';
+our $IS_PACKED = $ENV{PAR_0} ? 1 : 0;
 
 use Exporter qw(import);
 our @EXPORT_OK =
@@ -17,6 +18,7 @@ our @EXPORT_OK =
 			getExtension
 			stringifyTime
 			$IS_WINDOWS
+			$IS_PACKED
 		);
 
 my $file_sep = $IS_WINDOWS ? '\\' : '/';

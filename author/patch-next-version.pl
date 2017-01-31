@@ -77,9 +77,8 @@ die("Failed finding make config:\n$mkcfg") if $?;
 die("Unexpected mkcfg: '$mkcfg'\n") unless $mkcfg =~ /^make='([^']+)'/;
 my $mkcmd = $1;
 
-print "Building dist...\n";
-my @dist = qx($mkcmd dist 2>&1);
-die("Failed making dist:\n@dist") if $?;
+system("$mkcmd dist 2>&1");
+die("Failed making dist\n") if $?;
 
 my @msg = readAll($msgfile);
 $msg[0] =~ /(\r?\n)/;

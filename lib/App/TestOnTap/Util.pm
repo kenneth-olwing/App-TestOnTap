@@ -17,6 +17,7 @@ our @EXPORT_OK =
 			trim
 			getExtension
 			stringifyTime
+			expandAts
 			$IS_WINDOWS
 			$IS_PACKED
 		);
@@ -77,6 +78,52 @@ sub stringifyTime
 	}
 	
 	return strftime("%Y%m%dT%H%M%S${subsecs}Z", gmtime($tm));
+}
+
+sub expandAts
+{
+	my $dirctx = shift;
+	
+	my @a;
+	foreach my $e (@_)
+	{
+		if ($e =~ /^@(.+)/)
+		{
+			my @fa = expandAts(__readLines($1));
+			@fa = ($e) unless @fa;
+			push(@a, @fa)
+		}
+		else
+		{
+			push(@a, $e);
+		}
+	}
+	return @a;
+}
+
+sub __readLines
+{
+	my $fn = shift;
+	
+	my @lines;
+	if (-f $fn)
+	{
+		open (my $fh, '<', $fn) or die("Failed to open '$fn': $!\n");
+		my $line;
+		while (defined($line = <$fh>))
+		{
+			chomp($line);
+			if ($line =~ s#\\\s*$##)
+			{
+				$line .= <$fh>;
+				redo unless eof($fh);
+			}
+			push(@lines, $line);
+		}
+		close($fh);
+	}
+	
+	return @lines;
 }
 
 1;

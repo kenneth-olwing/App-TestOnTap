@@ -7,7 +7,7 @@ package App::TestOnTap::Args;
 use strict;
 use warnings;
 
-use App::TestOnTap::Util qw(slashify $IS_WINDOWS $IS_PACKED);
+use App::TestOnTap::Util qw(slashify expandAts $IS_WINDOWS $IS_PACKED);
 use App::TestOnTap::ExecMap;
 use App::TestOnTap::Config;
 use App::TestOnTap::WorkDirManager;
@@ -105,6 +105,7 @@ sub __parseArgv
 	# 
 	eval
 	{
+		@argv = expandAts(@argv);
 		local $SIG{__WARN__} = sub { die(@_) };
 		GetOptionsFromArray(\@argv, \%rawOpts, @specs)
 	};

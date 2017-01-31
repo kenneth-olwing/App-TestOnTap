@@ -1,5 +1,12 @@
 Revision history for App-TestOnTap
 
+0.013	2017-01-31
+
+	* Accepts --include as an alternative to --skip, in order to make it most
+	natural to express a query.
+	* Now accepts a zip archive instead of a suite directory, and will unpack
+	before running.
+
 0.00x   20161229-?
 		Betas
 

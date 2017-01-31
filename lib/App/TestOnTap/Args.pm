@@ -51,6 +51,7 @@ sub __parseArgv
 			execmap => undef,			# no execmap from file to apply
 			define => {},				# arbitrary key=value defines
 			skip => undef,				# no skip filter
+			include => undef,			# no include filter
 			jobs => 1,					# run only one job at a time (no parallelism)
 			timer => 0,					# don't show timing output
 			workdirectory => undef,		# explicit directory to use
@@ -75,6 +76,7 @@ sub __parseArgv
 			'execmap=s',
 			'define|D=s%',
 			'skip=s',
+			'include=s',
 			'jobs=i',
 			'timer!',
 			'workdirectory=s',
@@ -136,31 +138,44 @@ sub __parseArgv
 	pod2usage(-input => $argsPodInput, -exitval => 0, -verbose => 0) if $rawOpts{usage};
 	pod2usage(-message => "$0 version $version", -exitval => 0, -verbose => 99, -sections => '_') if $rawOpts{version};
 
-	# use the user skip filter for pruning the list of tests later
-	# Note however, that since we later want to select *included* files, 
-	# we nefariously reverse the expression given
+	# use the user skip or include filter for pruning the list of tests later
 	#
 	eval
 	{
-		if (defined($rawOpts{skip}))
+		if (defined($rawOpts{skip}) || defined($rawOpts{include}))
 		{
-			# before we reverse the meaning, try to compile the query first, to trigger any syntax problem now
-			#
-			Grep::Query->new($rawOpts{skip});
+			die("The options --skip and --include are mutually exclusive\n") if (defined($rawOpts{skip}) && defined($rawOpts{include}));
+			if ($rawOpts{skip})
+			{
+				# try to compile the query first, to trigger any syntax problem now
+				#
+				Grep::Query->new($rawOpts{skip});
 			
-			# still alive, add our reverse
-			#
-			$self->{include} = Grep::Query->new("NOT ( $rawOpts{skip} )");
+				# since we later want to select *included* files, 
+				# we nefariously reverse the expression given
+				#
+				$self->{include} = Grep::Query->new("NOT ( $rawOpts{skip} )");
+			}
+			else
+			{
+				$self->{include} = Grep::Query->new($rawOpts{include});
+			}
 		}
 	};
 	if ($@)
 	{
-		pod2usage(-message => "Failure creating skip filter:\n  $@", -exitval => 255, -verbose => 0);
+		$! = 255;
+		die("Failure creating filter:\n  $@");
 	}
 
 	# make sure we have a valid jobs value
 	#
 	pod2usage(-message => "Invalid -jobs value: '$rawOpts{jobs}'", -exitval => 255, -verbose => 0) if $rawOpts{jobs} < 1;
+	if ($rawOpts{jobs} < 1)
+	{
+		$! = 255;
+		die("Invalid -jobs value: '$rawOpts{jobs}'\n");
+	}
 	$self->{jobs} = $rawOpts{jobs};
 	
 	# set up savedir, if given - or, if archive is given fall back to current dir
@@ -178,7 +193,8 @@ sub __parseArgv
 		};
 		if ($@)
 		{
-			pod2usage(-message => "Failure setting up the save directory:\n  $@", -exitval => 255, -verbose => 0);
+			$! = 255;
+			die("Failure setting up the save directory:\n  $@");
 		}
 	}
 
@@ -192,7 +208,8 @@ sub __parseArgv
 	};
 	if ($@)
 	{
-		pod2usage(-message => "Failure getting suite root directory:\n  $@", -exitval => 255, -verbose => 0);
+		$! = 255;
+		die("Failure getting suite root directory:\n  $@");
 	}
 
 	# we want a config in the suite root
@@ -203,7 +220,8 @@ sub __parseArgv
 	};
 	if ($@)
 	{
-		pod2usage(-message => "Failure handling config in '$self->{suiteroot}':\n  $@", -exitval => 255, -verbose => 0);
+		$! = 255;
+		die("Failure handling config in '$self->{suiteroot}':\n  $@");
 	}
 
 	# set up the workdir manager
@@ -214,7 +232,8 @@ sub __parseArgv
 	};
 	if ($@)
 	{
-		pod2usage(-message => "Failure setting up the working directory:\n  $@", -exitval => 255, -verbose => 0);
+		$! = 255;
+		die("Failure setting up the working directory:\n  $@");
 	};
 
 	# keep the rest of the argv as-is

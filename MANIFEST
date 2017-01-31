@@ -16,6 +16,7 @@ Makefile.PL
 MANIFEST			This list of files
 LICENSE.md
 README.md
+author/patch-next-version.pl
 extras/.classpath
 extras/.project
 extras/README.txt
@@ -77,8 +78,8 @@ t/11-fail.t
 t/12-todo.t
 t/13-skip.t
 t/14-simple_single.t
-t/16-simple_multi.t
-t/17-bad_dependencies.t
+t/15-simple_multi.t
+t/16-bad_dependencies.t
 t/17-upside_down.t
 t/20-verify_saved_dir.t
 t/21-verify_saved_archive.t

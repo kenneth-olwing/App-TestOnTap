@@ -12,6 +12,7 @@ use App::TestOnTap::ExecMap;
 use App::TestOnTap::Config;
 use App::TestOnTap::WorkDirManager;
 
+use Archive::Zip qw(:ERROR_CODES);
 use FindBin qw($RealBin $Script);
 use Getopt::Long qw(GetOptionsFromArray :config require_order no_ignore_case bundling);
 use Pod::Usage;
@@ -20,6 +21,7 @@ use Grep::Query;
 use File::Basename;
 use File::Spec;
 use File::Path;
+use File::Temp qw(tempdir);
 use POSIX;
 use UUID::Tiny qw(:std);
 
@@ -203,8 +205,7 @@ sub __parseArgv
 	eval
 	{
 		die("No suite root provided!\n") unless @argv;
-		$self->{suiteroot} = slashify(File::Spec->rel2abs(shift(@argv)));
-		die("Not a directory: '$self->{suiteroot}'\n") unless -d $self->{suiteroot};
+		$self->{suiteroot} = $self->__findSuiteRoot(shift(@argv));
 	};
 	if ($@)
 	{
@@ -397,6 +398,34 @@ sub __createBinary
 	print "Created '$output'!\n";
 	
 	exit(0);
+}
+
+sub __findSuiteRoot
+{
+	my $self = shift;
+	my $suiteroot = slashify(File::Spec->rel2abs(shift()));
+	
+	if (-f $suiteroot)
+	{
+		print "Attempting to unpack '$suiteroot'...\n" if $self->{v};
+		die("Not a zip archive: '$suiteroot'\n") unless $suiteroot =~ /\.zip$/i;
+		my $zip = Archive::Zip->new($suiteroot);
+		my @memberNames = $zip->memberNames();
+		die("The zip archive '$suiteroot' is empty\n") unless @memberNames;
+		my @rootEntries = grep(m#^[^/]+/?$#, @memberNames);
+		die("The zip archive '$suiteroot' has more than one root entry\n") if scalar(@rootEntries) > 1;
+		my $testSuiteDir = $rootEntries[0];
+		die("The zip archive '$suiteroot' must have a test suite directory as root entry\n") unless $testSuiteDir =~ m#/$#;
+		my $cfgFile = $testSuiteDir . App::TestOnTap::Config::getName();
+		die("The zip archive '$suiteroot' must have a '$cfgFile' entry\n") unless grep(/^\Q$cfgFile\E$/, @memberNames);
+		my $tmpdir = slashify(tempdir("testontap-XXXX", TMPDIR => 1, CLEANUP => 1));
+		die("Failed to extract '$suiteroot': $!\n") unless $zip->extractTree('', $tmpdir) == AZ_OK;
+		$suiteroot = slashify(File::Spec->rel2abs("$tmpdir/$testSuiteDir"));
+		print "Unpacked '$suiteroot'\n" if $self->{v}; 
+	}
+	die("Not a directory or zip archive: '$suiteroot'\n") unless -d $suiteroot;
+	
+	return $suiteroot;
 }
 
 1;

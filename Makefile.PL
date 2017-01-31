@@ -21,7 +21,6 @@ my $configure_requires =
 
 my $test_requires =
 	{
-		'Archive::Zip'	=>	1.47,	# 1.30 misbehaves in t\21-verify_saved_archive.t
 		'Test::More'	=>	0,		# initial dev used: 1.001014
 		'Capture::Tiny'	=>	0,		# initial dev used: 0.30
 	};
@@ -65,8 +64,7 @@ WriteMakefile(
 			$eumm_understands_conf_and_test_requires_properly
 				? ()
 				: ( %$configure_requires, %$test_requires ),
-			'Grep::Query'						=>	1.002,
-			'UUID::Tiny'						=>	0,		# initial dev used: 1.04
+			'Archive::Zip'						=>	1.47,	# 1.30 misbehaves in t\21-verify_saved_archive.t
 			'Config::Std'						=>	0,		# initial dev used: 0.901
 			'Exporter'							=>	0,		# initial dev used: 5.72
 			'File::Basename'					=>	0,		# initial dev used: 2.85
@@ -79,6 +77,7 @@ WriteMakefile(
 			'FindBin'							=>	0,		# initial dev used: 1.51 
 			'Getopt::Long'						=>	0,		# initial dev used: 2.47
 			'Grep::Query'						=>	0,		# initial dev used: 1.002
+			'Grep::Query'						=>	1.002,
 			'JSON'								=>	0,		# initial dev used: 2.90
 			'Net::Domain'						=>	0,		# initial dev used: 3.07
 			'POSIX'								=>	0,		# initial dev used: 1.38_03
@@ -88,6 +87,7 @@ WriteMakefile(
 			'TAP::Formatter::File'				=>	0,		# initial dev used: 3.35
 			'TAP::Parser::Scheduler::Job'		=>	0,		# initial dev used: 3.35
 			'TAP::Parser::Scheduler::Spinner'	=>	0,		# initial dev used: 3.35
+			'UUID::Tiny'						=>	0,		# initial dev used: 1.04
 		},
 	dist  =>
 		{

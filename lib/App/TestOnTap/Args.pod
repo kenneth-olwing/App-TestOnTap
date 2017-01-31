@@ -145,7 +145,11 @@ Can be given multiple times.
 
 =item B<suitepath>
 
-This is the path to the root of the suite. The root must contain a valid I<testontap configuration> file.
+This is the path to the root directory of the suite, or to a zip archive containing a suite.
+
+If it is a zip archive, the archive must contain only a directory at the zip root, and a valid
+I<testontap configuration> file in that directory. It will be unpacked to a temporary location
+before being executed and cleaned up after. 
  
 For details on test suites, see the L<manual|App::TestOnTap/"THE TEST SUITE">.
 

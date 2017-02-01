@@ -1,5 +1,8 @@
 Revision history for App-TestOnTap
 
+0.014	2017-02-01
+
+	Support for simple argv expansion using @filename entries
 0.013	2017-01-31
 
 	* Accepts --include as an alternative to --skip, in order to make it most

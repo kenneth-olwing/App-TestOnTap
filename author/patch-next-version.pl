@@ -16,7 +16,8 @@ my %files =
 	(
 		'README.md' => 1,
 		'extras/Java/TAPGenerator/src/main/java/org/cpan/knth/TAPGenerator.java' => 11,
-		'lib/App/TestOnTap.pm' => 8	
+		'lib/App/TestOnTap.pm' => 8,
+		'lib/App/TestOnTap.pod' => 10
 	);
 
 foreach my $fn (keys(%files))

@@ -82,7 +82,7 @@ my $mkcmd = $1;
 
 my $expectedDist = "App-TestOnTap-$nextVersion.tar.gz";
 system("$mkcmd dist 2>&1");
-die("Failed making dist\n") if ($? || -f $expectedDist);
+die("Failed making dist '$expectedDist'\n") if ($? || -f $expectedDist);
 
 my @msg = readAll($msgfile);
 $msg[0] =~ /(\r?\n)/;

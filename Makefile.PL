@@ -55,7 +55,7 @@ WriteMakefile(
 						},
 					no_index =>
 						{
-							directory => [ 'extras' ],
+							directory => [ 'extras', 'author' ],
 						}
 				}
 			)

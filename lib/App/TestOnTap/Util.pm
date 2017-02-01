@@ -5,6 +5,7 @@ use warnings;
 
 use POSIX qw(strftime);
 use File::Basename;
+use File::Spec;
 
 our $IS_WINDOWS = $^O eq 'MSWin32';
 our $IS_PACKED = $ENV{PAR_0} ? 1 : 0;
@@ -80,6 +81,10 @@ sub stringifyTime
 	return strftime("%Y%m%dT%H%M%S${subsecs}Z", gmtime($tm));
 }
 
+# expand any array elements using '@xyz' as new line elements read from 'xyz'
+# also, handle recursion where included files itself refers to further files
+# possibly using relative paths
+#
 sub expandAts
 {
 	my $dirctx = shift;
@@ -89,39 +94,77 @@ sub expandAts
 	{
 		if ($e =~ /^@(.+)/)
 		{
-			my @fa = expandAts(__readLines($1));
-			@fa = ($e) unless @fa;
-			push(@a, @fa)
+			# if we find a filename use as-if its absolute, otherwise tack on
+			# the current dir context
+			#
+			my $fn = $1;
+			$fn = File::Spec->file_name_is_absolute($fn) ? $fn : "$dirctx/$fn";
+			
+			# recursively read file contents into the array
+			# using the current files directory as the new dir context
+			#
+			push(@a, expandAts(dirname($fn), __readLines($fn)))
 		}
 		else
 		{
+			# just keep the value as-is
+			#
 			push(@a, $e);
 		}
 	}
 	return @a;
 }
 
+# read all lines from a file and return as an array
+# supports line continuation, e.g. a line with '\' at the end causes
+# appending the line after etc, in order to create a single line.
+#   - a line starting with '#' will be ignored as a comment
+#   - all lines will be trimmed from space at each end
+#   - an empty line will be ignored
+#
 sub __readLines
 {
-	my $fn = shift;
+	my $fn = slashify(File::Spec->rel2abs(shift()));
 	
+	die("No such file: '$fn'\n") unless -f $fn;
+
 	my @lines;
-	if (-f $fn)
+	open (my $fh, '<', $fn) or die("Failed to open '$fn': $!\n");
+	my $line;
+	while (defined($line = <$fh>))
 	{
-		open (my $fh, '<', $fn) or die("Failed to open '$fn': $!\n");
-		my $line;
-		while (defined($line = <$fh>))
+		chomp($line);
+		
+		# handle lines with line continuation
+		# until no more continuation is found
+		#
+		if ($line =~ s#\\\s*$##)
 		{
-			chomp($line);
-			if ($line =~ s#\\\s*$##)
-			{
-				$line .= <$fh>;
-				redo unless eof($fh);
-			}
-			push(@lines, $line);
+			# append lines...
+			#
+			$line .= <$fh>;
+			
+			# ...and repeat, unless we hit eof
+			#
+			redo unless eof($fh);
 		}
-		close($fh);
+		
+		# if the resulting line is a comment line, ignore it
+		#
+		if ($line !~ /^\s*#/)
+		{
+			# ensure removing any  trailing line continuation is removed
+			# (can happen if there is no extra line after a line continuation, just eof)
+			#
+			$line =~ s#\\\s*$##;
+			
+			# trim the ends, and add it - but only if it's not empty
+			#
+			$line = trim($line);
+			push(@lines, $line) if $line;
+		}
 	}
+	close($fh);
 	
 	return @lines;
 }

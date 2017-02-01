@@ -105,7 +105,7 @@ sub __parseArgv
 	# 
 	eval
 	{
-		@argv = expandAts(@argv);
+		@argv = expandAts('.', @argv);
 		local $SIG{__WARN__} = sub { die(@_) };
 		GetOptionsFromArray(\@argv, \%rawOpts, @specs)
 	};
@@ -139,7 +139,7 @@ sub __parseArgv
 	pod2usage(-input => $manualPodInput, -exitval => 0, -verbose => 2, -noperldoc => 1) if $rawOpts{manual};
 	pod2usage(-input => $argsPodInput, -exitval => 0, -verbose => 2, -noperldoc => 1) if $rawOpts{help};
 	pod2usage(-input => $argsPodInput, -exitval => 0, -verbose => 0) if $rawOpts{usage};
-	pod2usage(-message => "$0 version $version", -exitval => 0, -verbose => 99, -sections => '_') if $rawOpts{version};
+	pod2usage(-message => (slashify($0) . " version $version"), -exitval => 0, -verbose => 99, -sections => '_') if $rawOpts{version};
 
 	# use the user skip or include filter for pruning the list of tests later
 	#

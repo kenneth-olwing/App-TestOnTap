@@ -1,6 +1,6 @@
 =head1 NAME
 
-App::TestOnTap::Args - hidden flags
+App::TestOnTap::_Args - hidden flags
 
 Commandline options and arguments understood for TestOnTap processing
 

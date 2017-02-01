@@ -82,7 +82,7 @@ my $mkcmd = $1;
 
 my $expectedDist = "App-TestOnTap-$nextVersion.tar.gz";
 system("$mkcmd dist 2>&1");
-die("Failed making dist '$expectedDist'\n") if ($? || -f $expectedDist);
+die("Failed making dist '$expectedDist'\n") if ($? || !-f $expectedDist);
 
 my @msg = readAll($msgfile);
 $msg[0] =~ /(\r?\n)/;
@@ -110,7 +110,7 @@ my $a = <STDIN>;
 chomp($a);
 if (lc($a) eq 'yes')
 {
-	print "Committing, tagging and pushing...\n";
+	print "Committing, tagging, pushing and uploading...\n";
 	
 	system("git commit -a -F $msgfile2 2>&1");
 	die("Failed commit") if $?;
@@ -121,7 +121,7 @@ if (lc($a) eq 'yes')
 	system("git push origin $br[0] $nextTag 2>&1");
 	die("Failed push\n") if $?;
 	
-	system("cpan-upload -v $expectedDist");
+	system("cpan-upload -v --user knth $expectedDist");
 	die("Failed upload\n") if $?;
 }
 else

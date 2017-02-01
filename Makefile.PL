@@ -52,6 +52,10 @@ WriteMakefile(
 									url => 'https://github.com/kenneth-olwing/App-TestOnTap.git',
 									web => 'https://github.com/kenneth-olwing/App-TestOnTap'
 								}
+						},
+					no_index =>
+						{
+							directory => [ 'extras' ],
 						}
 				}
 			)

@@ -7,6 +7,9 @@ my $numtests = int(rand(5)) + 1;
 
 plan(tests => $numtests);
 
+note("NOTE: COMMANDLINE: '@ARGV'!\n") if grep(/^NOTE$/, @ARGV);
+diag("DIAG: COMMANDLINE: '@ARGV'!\n") if grep(/^DIAG$/, @ARGV);
+
 for my $testnum (1 .. $numtests)
 {
 	pass($testnum . " (" . __FILE__ . ":" . __LINE__ . ")");

@@ -6,9 +6,9 @@ id = 143364a2-cc11-11e6-be89-8ea39edadb5b
 #
 parallelizable = regexp(.*)
 
-# avoid incomplete stuff
+# avoid incomplete stuff and the readme
 #
-skip = regexp(^incomplete/)
+skip = regexp(^incomplete/) or eq(README.txt)
 
 [DEPENDENCY All depends on init]
 match = not eq(init.pl)

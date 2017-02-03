@@ -21,7 +21,7 @@ my $configure_requires =
 
 my $test_requires =
 	{
-		'Test::More'	=>	0,		# initial dev used: 1.001014
+		'Test::More'	=>	0.88,	# anything less lacks "done_testing()"...
 		'Capture::Tiny'	=>	0,		# initial dev used: 0.30
 	};
 

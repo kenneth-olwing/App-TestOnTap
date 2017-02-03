@@ -107,6 +107,7 @@ extras/samplesuite/small/sm6.pl
 extras/samplesuite/small/sm7.pl
 extras/samplesuite/small/sm8.pl
 extras/samplesuite/small/sm9.pl
+extras/samplesuite/README.txt
 lib/App/TestOnTap.pm
 lib/App/TestOnTap.pod
 lib/App/TestOnTap/Args.pm

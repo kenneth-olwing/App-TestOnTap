@@ -113,9 +113,8 @@ sub endTestRun
 			user => $IS_WINDOWS ? getlogin() : scalar(getpwuid($<)),
 			host => hostfqdn(),
 			jobs => $args->getJobs(),
-			script => slashify(File::Spec->rel2abs($0)),
-			fullargv => $args->getFullArgv(),
-			argv => $args->getArgv(),
+			dollar0 => slashify(File::Spec->rel2abs($0)),
+			argv => $args->getFullArgv(),
 			defines => $args->getDefines(),
 			platform => $^O,
 			uname => [ uname() ]

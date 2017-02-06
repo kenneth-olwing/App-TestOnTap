@@ -473,6 +473,10 @@ This contains general information about the test run.
 
 =over
 
+=item * dollar0 (string)
+
+The full path of $0.
+
 =item * argv (list of strings)
 
 The arguments given on the command line and passed to the tests.

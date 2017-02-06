@@ -24,6 +24,7 @@ use File::Path;
 use File::Temp qw(tempdir);
 use POSIX;
 use UUID::Tiny qw(:std);
+use LWP::Simple;
 
 # CTOR
 #
@@ -412,13 +413,32 @@ sub __createBinary
 sub __findSuiteRoot
 {
 	my $self = shift;
-	my $suiteroot = slashify(File::Spec->rel2abs(shift()));
-	
-	if (-f $suiteroot)
+	my $suiteroot = shift;
+
+	if (-d $suiteroot)
 	{
-		print "Attempting to unpack '$suiteroot'...\n" if $self->{v};
-		die("Not a zip archive: '$suiteroot'\n") unless $suiteroot =~ /\.zip$/i;
-		my $zip = Archive::Zip->new($suiteroot);
+		$suiteroot = slashify(File::Spec->rel2abs($suiteroot));
+	}
+	else
+	{
+		die("Not a directory or zip archive: '$suiteroot'\n") unless $suiteroot =~ /\.zip$/i;
+		my $zipfile = $suiteroot;
+		my $tmpdir = slashify(tempdir("testontap-XXXX", TMPDIR => 1, CLEANUP => 1));
+
+		if (!-f $suiteroot)
+		{
+			# maybe it's a url?
+			# need to dl it before unpacking
+			#
+			my $localzip = slashify("$tmpdir/local.zip");
+			print "Attempting to download '$suiteroot' => $localzip...\n" if $self->{v};
+			my $rc = getstore($suiteroot, $localzip);
+			die("Treated '$suiteroot' as URL - failed to download : $rc\n") if (is_error($rc) || !-f $localzip);
+			$zipfile = $localzip;
+		}
+		
+		print "Attempting to unpack '$zipfile'...\n" if $self->{v};
+		my $zip = Archive::Zip->new($zipfile);
 		my @memberNames = $zip->memberNames();
 		die("The zip archive '$suiteroot' is empty\n") unless @memberNames;
 		my @rootEntries = grep(m#^[^/]+/?$#, @memberNames);
@@ -427,12 +447,10 @@ sub __findSuiteRoot
 		die("The zip archive '$suiteroot' must have a test suite directory as root entry\n") unless $testSuiteDir =~ m#/$#;
 		my $cfgFile = $testSuiteDir . App::TestOnTap::Config::getName();
 		die("The zip archive '$suiteroot' must have a '$cfgFile' entry\n") unless grep(/^\Q$cfgFile\E$/, @memberNames);
-		my $tmpdir = slashify(tempdir("testontap-XXXX", TMPDIR => 1, CLEANUP => 1));
 		die("Failed to extract '$suiteroot': $!\n") unless $zip->extractTree('', $tmpdir) == AZ_OK;
 		$suiteroot = slashify(File::Spec->rel2abs("$tmpdir/$testSuiteDir"));
 		print "Unpacked '$suiteroot'\n" if $self->{v}; 
 	}
-	die("Not a directory or zip archive: '$suiteroot'\n") unless -d $suiteroot;
 	
 	return $suiteroot;
 }

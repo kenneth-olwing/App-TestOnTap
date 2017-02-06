@@ -106,6 +106,7 @@ sub __parseArgv
 	eval
 	{
 		@argv = expandAts('.', @argv);
+		$self->{fullargv} = [ @argv ];
 		local $SIG{__WARN__} = sub { die(@_) };
 		GetOptionsFromArray(\@argv, \%rawOpts, @specs)
 	};
@@ -248,6 +249,13 @@ sub __parseArgv
 	{
 		warn("WARNING: No 'parallelizable' rule found ('--jobs $self->{jobs}' has no effect); all tests will run serially!\n");
 	}
+}
+
+sub getFullArgv
+{
+	my $self = shift;
+	
+	return $self->{fullargv};
 }
 
 sub getArgv

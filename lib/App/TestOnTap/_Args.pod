@@ -9,6 +9,7 @@ Commandline options and arguments understood for TestOnTap processing
  testontap
     [ --_help ]
     [ --_pp ]
+    [ --_pp-variant <value> ]
     [ --_pp-output <path> ]
     [ --_pp-force ]
 
@@ -37,17 +38,29 @@ If given, this option causes all other options to be ignored (apart from the acc
 
 Note that this can not be used when you already run a binary.
 
+=item B<--_pp-variant E<lt>valueE<gt>>
+
+This is an optional value that will be tacked on to the automatically calculated name by
+I<--_pp-output>. If given, it will be prefixed with a dash and placed at the end of the name.
+
 =item B<--_pp-output E<lt>pathE<gt>>
 
 If this option is not given, a default name of the binary will be computed and placed in the current directory.
 
-The default name is the script name, the version number, the os, the arch and for Windows, the '.exe' suffix.
+The default name is the script name, the version number, the os, the arch, the variant
+(set by I<--_pp-variant>, if any) and for Windows, the '.exe' suffix.
 
   Examples:
     testontap-0.123-windows-x86.exe
     testontap-0.123-linux-x86_64
+    
+    # with I<--_pp-variant foo>:
+    testontap-0.123-windows-x86-foo.exe
+    testontap-0.123-linux-x86_64-foo
 
-If the given path doesn't exist, assume it is the actual full path and filename.
+If the given path doesn't exist, assume it is the actual full path and filename. Note that a given variant
+will not be present in that case as the automatical name never is computed.
+
 If the path is an existing directory, use the default name above and write it to the directory.
 
 If the ultimate name already exists, an error will be thrown. See the force flag to ignore that check in order

@@ -66,6 +66,7 @@ sub __parseArgv
 			#
 			_help => 0,
 			_pp => 0,					# make a binary using pp
+			'_pp-variant' => undef,		# name suffix
 			'_pp-output' => undef,		# binary name
 			'_pp-force' => 0,			# overwrite existing file
 		);
@@ -91,6 +92,7 @@ sub __parseArgv
 			#
 			'_help',
 			'_pp',
+			'_pp-variant=s',
 			'_pp-output=s',
 			'_pp-force!',
 		);
@@ -126,15 +128,20 @@ sub __parseArgv
 
 	# for the special selection of running pp, do this first, and it will not return
 	#
-	$self->__createBinary
-				(
-					$rawOpts{'_pp-output'},
-					$rawOpts{'_pp-force'},
-					$rawOpts{v},
-					$version,
-					$argsPodName, $argsPodInput,
-					$manualPodName, $manualPodInput
-				) if ($rawOpts{_pp});
+	if ($rawOpts{_pp})
+	{
+		$self->__createBinary
+					(
+						$rawOpts{'_pp-output'},
+						$rawOpts{'_pp-variant'},
+						$rawOpts{'_pp-force'},
+						$rawOpts{v},
+						$version,
+						$argsPodName, $argsPodInput,
+						$manualPodName, $manualPodInput
+					);
+		die("INTERNAL ERROR: didn't expect to return here!");
+	}
 
 	# if any of the doc switches made, display the pod
 	#
@@ -354,6 +361,7 @@ sub __createBinary
 {
 	my $self = shift;
 	my $output = shift || '.';
+	my $variant = shift;
 	my $force = shift;
 	my $verbosity = shift;
 	my $version = shift;
@@ -365,14 +373,15 @@ sub __createBinary
 	die("Sorry, you're already running a binary/packed instance\n") if $IS_PACKED;
 	
 	eval "require PAR::Packer";
-	die("Sorry, it appears PAR::Packer is not installed\n  $@\n") if $@;
+	die("Sorry, it appears PAR::Packer is not installed/working!\n") if $@;
 
 	my $os = $IS_WINDOWS ? 'windows' : $^O;
-	my $arch = (POSIX::uname())[4]; 
+	my $arch = (POSIX::uname())[4];
+	$variant = $variant ? "-$variant" : '';  
 	my $exeSuffix = $IS_WINDOWS ? '.exe' : '';
 	if (-d $output)
 	{
-		$output = slashify(File::Spec->rel2abs("$output/$Script-$version-$os-$arch$exeSuffix"));
+		$output = slashify(File::Spec->rel2abs("$output/$Script-$version-$os-$arch$variant$exeSuffix"));
 	}
 	else
 	{
@@ -381,7 +390,7 @@ sub __createBinary
 	
 	die("The path '$output' already exists\n") if (!$force && -e $output);
 	unlink($output);
-	die("Attempt to forcible remove '$output' failed: $!\n") if -e $output;
+	die("Attempt to forcibly remove '$output' failed: $!\n") if -e $output;
 		
 	my @vs = $verbosity > 1 ? ('-' . 'v' x ($verbosity - 1)) : ();
 	my @liblocs = map { $_ ne '.' ? ('-I', slashify(File::Spec->rel2abs($_))) : () } @INC;

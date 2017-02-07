@@ -1,5 +1,9 @@
 Revision history for App-TestOnTap
 
+0.017	2017-02-07
+
+	Allow fetching suite zip from URL, add some minor things to
+	the metadata written from a test
 0.016	2017-02-03
 
 	Add a sample suite

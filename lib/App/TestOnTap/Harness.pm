@@ -55,6 +55,7 @@ sub runtests
 
 		my %e = %ENV;		 
 		local %ENV = %e;
+		$ENV{TESTONTAP_SUITE_DIR} = $sr;
 		$ENV{TESTONTAP_TMP_DIR} = $wdmgr->getTmp();
 		$ENV{TESTONTAP_PRIVATE_DIR} = $wdmgr->getPrivate();
 		

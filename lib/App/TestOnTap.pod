@@ -353,6 +353,10 @@ The driver communicates this type of information using environment variables (pr
 
 =over
 
+=item * TESTONTAP_SUITE_DIR
+
+The path to the root directory of the suite. It may assist tests in navigating the suite.
+
 =item * TESTONTAP_TMP_DIR
 
 This variable holds an existing directory path, and is free for the tests to use for whatever reason. Note that it

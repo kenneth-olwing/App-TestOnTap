@@ -122,6 +122,21 @@ sub endTestRun
 	$self->__save("$self->{root}/data/meta", $meta);
 }
 
+# retain the tap handles we issue so we can 'manually' close them
+# this can be necessary during a bailout on windows, where the 
+# spool handle closing is not called, and the automatic cleanup
+# of temp stuff spouts errors to delete a file due to it having an
+# open handle to it.
+#
+# note that putting the handle as a key stringifies it, so we
+# must use the actual value when closing, not the string...
+#
+my %tapHandles;
+END
+{
+	close($tapHandles{$_}) foreach (keys(%tapHandles));
+}
+
 sub openTAPHandle
 {
 	my $self = shift;
@@ -132,6 +147,11 @@ sub openTAPHandle
 	my $tapPath = slashify("$self->{tap}/$testPath.tap");
 	mkpath(dirname($tapPath));
 	open(my $h, '>', $tapPath) or die("Failed to open '$tapPath': $!");
+
+	# save the handle in the list, forcibly stringify it as key and
+	# save the actual value
+	# 
+	$tapHandles{"$h"} = $h;
 	
 	return $h;
 }
@@ -142,7 +162,15 @@ sub closeTAPHandle
 	my $parser = shift;
 	
 	my $spool_handle = $parser->delete_spool;
-	close($spool_handle) if $spool_handle;
+	if ($spool_handle)
+	{
+		close($spool_handle);
+		
+		# don't forget to remove the key/value in the list
+		# using the stringified version of the handle!
+		#
+		delete($tapHandles{"$spool_handle"});
+	}
 	
 	return;
 }

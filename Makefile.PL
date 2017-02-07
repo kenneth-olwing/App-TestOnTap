@@ -83,6 +83,7 @@ WriteMakefile(
 			'Grep::Query'						=>	0,		# initial dev used: 1.002
 			'Grep::Query'						=>	1.002,
 			'JSON'								=>	0,		# initial dev used: 2.90
+			'LWP::Simple'						=>	0,		# initial dev used: 6.17
 			'Net::Domain'						=>	0,		# initial dev used: 3.07
 			'POSIX'								=>	0,		# initial dev used: 1.38_03
 			'Pod::Simple::Search'				=>	0,		# initial dev used: 3.35 

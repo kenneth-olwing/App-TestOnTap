@@ -44,8 +44,8 @@ my $mj = $1;
 my $min = $2;
 my $isdev = defined($min) ? 1 : 0;
 
-my @fetch = qx(git fetch --all -q 2>&1);
-die("Failed fetch:\n@fetch") if $?;
+system("git fetch --all -q 2>&1");
+die("Failed fetch") if $?;
 
 my @tags = qx(git tag -l 2>&1);
 die("Failed tags:\n@tags") if $?;
@@ -77,7 +77,7 @@ die("Failed creating makefile:\n@mk") if $?;
 
 my $mkcfg = qx(perl -V:make 2>&1);
 die("Failed finding make config:\n$mkcfg") if $?;
-die("Unexpected mkcfg: '$mkcfg'\n") unless $mkcfg =~ /^make='([^']+)'/;
+die("Unexpected mkcfg: '$mkcfg'\n") unless $mkcfg =~ /^make='([^']+)'/; #'
 my $mkcmd = $1;
 
 my $expectedDist = "App-TestOnTap-$nextVersion.tar.gz";

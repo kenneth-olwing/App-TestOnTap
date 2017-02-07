@@ -1,5 +1,9 @@
 Revision history for App-TestOnTap
 
+0.018	2017-02-07
+
+	Communicate the suite root to the suite
+	Track the tap handles issued so they can be closed during a bailout or other sudden death.
 0.017	2017-02-07
 
 	Allow fetching suite zip from URL, add some minor things to

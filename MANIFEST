@@ -116,6 +116,7 @@ lib/App/TestOnTap/Config.pm
 lib/App/TestOnTap/Dispenser.pm
 lib/App/TestOnTap/ExecMap.pm
 lib/App/TestOnTap/Harness.pm
+lib/App/TestOnTap/OrderStrategy.pm
 lib/App/TestOnTap/Scheduler.pm
 lib/App/TestOnTap/Util.pm
 lib/App/TestOnTap/WorkDirManager.pm
@@ -131,6 +132,7 @@ t/14-simple_single.t
 t/15-simple_multi.t
 t/16-bad_dependencies.t
 t/17-upside_down.t
+t/18-ordering.t
 t/20-verify_saved_dir.t
 t/21-verify_saved_archive.t
 t/30-basic_parallel.t
@@ -153,6 +155,12 @@ t/tsuites/custom_emap/t.weird1
 t/tsuites/custom_emap/t.weird2
 t/tsuites/empty/placeholder
 t/tsuites/fail/oops.pl
+t/tsuites/ordering/alphabetic_config.testontap
+t/tsuites/ordering/config.testontap
+t/tsuites/ordering/natural_config.testontap
+t/tsuites/ordering/t1.pl
+t/tsuites/ordering/t10.pl
+t/tsuites/ordering/t2.pl
 t/tsuites/simple_multi/one_equals_one.pl
 t/tsuites/simple_multi/three_equals_three.pl
 t/tsuites/simple_multi/two_equals_two.pl

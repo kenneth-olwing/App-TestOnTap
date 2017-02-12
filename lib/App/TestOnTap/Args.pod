@@ -20,6 +20,7 @@ Commandline options and arguments understood for TestOnTap processing
     [ --workdirectory <path> ]
     [ { --skip || --include } <query> ]
     [ --jobs <n> ]
+    [ --order <strategy> ]
     [ --timer ]
     [ --execmap <mapfile> ]
     [ --archive ]
@@ -158,6 +159,50 @@ The B<actual> amount of concurrently executing jobs are then subject to limiting
 the parallelizability of a given test.
 
 For more on parallelization, see the L<manual regarding the 'parallelizable' config setting|App::TestOnTap/"THE SUITE CONFIG">.
+
+=item B<--order E<lt>strategyE<gt>>
+
+Setting a strategy controls the ordering of the tests.
+
+However, note that the actual order of tests are primarily controlled by dependencies, which will also
+produce the correct run order when parallelization is in use. Thus, the order strategy is only relevant
+when there are multiple to choose from during evaluation of 'next available test(s)'.
+
+The default strategy is 'none', but the default for a given suite may also be set in its configuration.
+
+=over
+
+=item * C<none>
+
+This is the default strategy and the resulting order depends on internal implementation details.
+For most purposes the order will likely be random, but for a guaranteed randomization, use the C<random> strategy.
+
+=item * C<alphabetic> or C<ralphabetic>
+
+This strategy simply uses an alphabetic sort on test names. Thus, this results in the order
+'sm1', 'sm10', 'sm2' etc.
+
+Adding the initial C<r> causes the order to be reversed.  
+
+=item * C<natural> or C<rnatural>
+
+This strategy makes a best effort to take numbering into account when sorting. It is basically alphabetic,
+but takes embedded numbers into account if possible. Thus, this results in the order
+'sm1', 'sm2', 'sm10' etc.
+
+Adding the initial C<r> causes the order to be reversed.  
+
+=item * random
+
+This will explicitly shuffle the order randomly.
+
+=back
+
+=item B<--timer>
+
+This turns on the display of timing information for tests when running.
+
+Note that the information is always present in persisted results, this just controls the display when running a suite. 
 
 =item B<--execmap E<lt>mapfileE<gt>>
 

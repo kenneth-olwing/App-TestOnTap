@@ -11,6 +11,7 @@ use App::TestOnTap::Util qw(slashify expandAts $IS_WINDOWS $IS_PACKED);
 use App::TestOnTap::ExecMap;
 use App::TestOnTap::Config;
 use App::TestOnTap::WorkDirManager;
+use App::TestOnTap::OrderStrategy; 
 
 use Archive::Zip qw(:ERROR_CODES);
 use FindBin qw($RealBin $Script);
@@ -56,6 +57,7 @@ sub __parseArgv
 			skip => undef,				# no skip filter
 			include => undef,			# no include filter
 			jobs => 1,					# run only one job at a time (no parallelism)
+			order => undef,				# have no particular strategy for test order
 			timer => 0,					# don't show timing output
 			workdirectory => undef,		# explicit directory to use
 			savedirectory => undef,		# don't save results (unless -archive is used)
@@ -82,6 +84,7 @@ sub __parseArgv
 			'skip=s',
 			'include=s',
 			'jobs=i',
+			'order=s',
 			'timer!',
 			'workdirectory=s',
 			'savedirectory=s',
@@ -190,6 +193,10 @@ sub __parseArgv
 	}
 	$self->{jobs} = $rawOpts{jobs};
 	
+	# verify known order strategies
+	#
+	$self->{orderstrategy} = App::TestOnTap::OrderStrategy->new($rawOpts{order}) if $rawOpts{order};
+	
 	# set up savedir, if given - or, if archive is given fall back to current dir
 	#
 	if (defined($rawOpts{savedirectory}) || $rawOpts{archive})
@@ -285,6 +292,13 @@ sub getJobs
 	my $self = shift;
 	
 	return $self->{jobs};
+}
+
+sub getOrderStrategy
+{
+	my $self = shift;
+	
+	return $self->{orderstrategy};
 }
 
 sub getTimer

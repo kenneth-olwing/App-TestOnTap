@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use App::TestOnTap::Util qw(slashify);
+use App::TestOnTap::OrderStrategy;
 use App::TestOnTap::_dbgvars;
 
 use Config::Std;
@@ -81,7 +82,11 @@ sub __readCfgFile
 	}
 	$self->{parallelizable} = $parallelizable;
 
-	# set up execmap, possibly as a delegate from a user defined one 
+	# read the optional order strategy
+	#
+	$self->{orderstrategy} = App::TestOnTap::OrderStrategy->new($blankSection->{order}) if $blankSection->{order};	
+	
+	# set up the execmap, possibly as a delegate from a user defined one 
 	#
 	# a non-existing section will cause a default execmap
 	#
@@ -140,6 +145,13 @@ sub skip
 		$self->{skip}
 			? $self->{skip}->qgrep($test)
 			: 0;
+}
+
+sub getOrderStrategy
+{
+	my $self = shift;
+	
+	return $self->{orderstrategy};
 }
 
 sub hasParallelizableRule

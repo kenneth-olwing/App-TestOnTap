@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use App::TestOnTap::Util qw(slashify getExtension);
+use App::TestOnTap::OrderStrategy;
 
 use File::Find;
 
@@ -14,7 +15,7 @@ sub new
 	my $class = shift;
 	my $args = shift;
 
-	my $self = bless( { args => $args, inprogress => {} }, $class);
+	my $self = bless( { args => $args, inprogress => {}, orderstrategy => App::TestOnTap::OrderStrategy->new() }, $class);
 	$self->__analyze(); 
 	
 	return $self;
@@ -116,10 +117,12 @@ sub getEligibleTests
 	}
 
 	# toposort the remaining, and divide them into parallelizable and non-parallelizable
+	# order the toposorted list according to the requested strategy
 	#
+	my $orderstrategy = $self->{args}->getOrderStrategy() || $self->{args}->getConfig()->getOrderStrategy() || $self->{orderstrategy}; 
 	my @parallelizable;
 	my @nonParallelizable;
-	foreach my $t (__toposort($self->{graph}))
+	foreach my $t ($orderstrategy->orderList(__toposort($self->{graph})))
 	{
 		if ($self->{args}->getConfig()->parallelizable($t))
 		{
@@ -167,8 +170,8 @@ sub getEligibleTests
 	# make a note that those we return are in progress
 	#
 	$self->{inprogress}->{$_} = 1 foreach (@eligible);
-	
-	return [ sort(@eligible) ];
+
+	return \@eligible;
 }
 
 # SUB helpers
@@ -288,12 +291,12 @@ sub __toposort
 			return if $g{$node}->{mark};
 			
 			$g{$node}->{mark} = $tmpmarked;
-			$visitor->($_, @route, $node) foreach (sort(@{$g{$node}->{deps}}));
+			$visitor->($_, @route, $node) foreach (@{$g{$node}->{deps}});
 			$g{$node}->{mark} = $permmarked;
 			push(@sorted, $node);
 		};
 	
-	foreach my $node (sort(@keys))
+	foreach my $node (@keys)
 	{
 		next unless $g{$node}->{mark} == $unmarked;
 		$visitor->($node);

@@ -222,6 +222,13 @@ that ends up acting as the default, i.e. tests are never parallelizable (but it 
   
 E.g. all tests are possible to run in parallel except two special ones.
 
+=item B<order>
+
+This is optional, and sets the default ordering strategy for the suite. It may be overridden by the commandline
+C<--order> flag.
+
+If not given, the default commandline setting applies (C<none>).
+
 =item B<[EXECMAP]> (section)
 
 This section is optional, but recommended. It details how files with particular file extensions should be executed.

@@ -116,65 +116,53 @@ sub getEligibleTests
 		}
 	}
 
-	# toposort the remaining, and divide them into parallelizable and non-parallelizable
+	# extract those ready to run and separate them into parallelizable and not parallelizable
 	#
 	my @parallelizable;
 	my @nonParallelizable;
-	my @topoSorted = $self->__toposort($self->{graph}); 
-	foreach my $t (@topoSorted)
+	foreach my $t (keys(%{$self->{graph}}))
 	{
-		if ($self->{args}->getConfig()->parallelizable($t))
-		{
-			push(@parallelizable, $t);
-		}
-		else
-		{
-			push(@nonParallelizable, $t);
-		}
-	}
-
-	# now select those that are eligible
-	#
-	my @eligible;
-	
-	# give away as many parallelizable as possible first
-	# 
-	foreach my $t (@parallelizable)
-	{
+		# tests that have no dependencies and are not already in progress are
+		# now ready to run
+		# 
 		if (!@{$self->{graph}->{$t}} && !$self->{inprogress}->{$t})
 		{
-			push(@eligible, $t);
-		}
-	}
-
-	# we only deal with non-parallelizables if:
-	#   - there are any to deal out at all...
-	#   - nothing else already is eligible
-	#   - nothing else is presently in progress
-	# 
-	if (@nonParallelizable && !@eligible && !keys(%{$self->{inprogress}}))
-	{
-		# iterate over them, but as soon one is eligible, get out
-		#
-		foreach my $t (@nonParallelizable)
-		{
-			if (!@{$self->{graph}->{$t}} && !$self->{inprogress}->{$t})
+			if ($self->{args}->getConfig()->parallelizable($t))
 			{
-				push(@eligible, $t);
-				last;
+				push(@parallelizable, $t);
+			}
+			else
+			{
+				push(@nonParallelizable, $t);
 			}
 		}
+	}	
+
+	# order them according to the chosen strategy
+	#
+	my $orderstrategy = $self->{args}->getOrderStrategy() || $self->{args}->getConfig()->getOrderStrategy() || $self->{orderstrategy}; 
+	@parallelizable = $orderstrategy->orderList(@parallelizable);
+	@nonParallelizable = $orderstrategy->orderList(@nonParallelizable);
+	
+	# now finally select those eligible - try to do away with parallelizabe first
+	#
+	my @eligible = @parallelizable;
+	
+	# we only deal with non-parallelizables if:
+	#   - nothing else already is eligible
+	#   - there are any to deal out at all...
+	#   - nothing else is presently in progress
+	# if so, just pick the first
+	# 
+	if (!@eligible && @nonParallelizable && !keys(%{$self->{inprogress}}))
+	{
+		@eligible = $nonParallelizable[0];
 	}
 	
 	# make a note that those we return are in progress
 	#
 	$self->{inprogress}->{$_} = 1 foreach (@eligible);
 
-	# order the eligible ones according to the strategy
-	#
-	my $orderstrategy = $self->{args}->getOrderStrategy() || $self->{args}->getConfig()->getOrderStrategy() || $self->{orderstrategy}; 
-	@eligible = $orderstrategy->orderList(@eligible);
-		
 	return \@eligible;
 }
 

@@ -164,9 +164,9 @@ For more on parallelization, see the L<manual regarding the 'parallelizable' con
 
 Setting a strategy controls the ordering of the tests.
 
-However, note that the actual order of tests are primarily controlled by dependencies, which will also
-produce the correct run order when parallelization is in use. Thus, the order strategy is only relevant
-when there are multiple to choose from during evaluation of 'next available test(s)'.
+However, note that the actual order of tests are primarily controlled by dependencies and possibly
+the parallelizability of any given test. Thus, the order strategy is only relevant
+when there are multiple tests to choose from during evaluation of 'next available test(s)'.
 
 The default strategy is 'none', but the default for a given suite may also be set in its configuration.
 
@@ -175,7 +175,7 @@ The default strategy is 'none', but the default for a given suite may also be se
 =item * C<none>
 
 This is the default strategy and the resulting order depends on internal implementation details.
-For most purposes the order will likely be random, but for a guaranteed randomization, use the C<random> strategy.
+It may or may not look random, but for a guaranteed randomization, use the C<random> strategy.
 
 =item * C<alphabetic> or C<ralphabetic>
 

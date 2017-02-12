@@ -1,5 +1,8 @@
 Revision history for App-TestOnTap
 
+0.022	2017-02-13
+
+	rewrite the dispenser algo
 0.021	2017-02-12
 
 	Add ability for @file expansion to do ${envvar} expansion during reading

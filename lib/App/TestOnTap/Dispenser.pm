@@ -44,7 +44,7 @@ sub __analyze
 		
 	# trap any cyclic dependency problems right now
 	#
-	__toposort(\%graph);
+	$self->__toposort(\%graph);
 
 	# tentatively store the full graph
 	#
@@ -117,12 +117,11 @@ sub getEligibleTests
 	}
 
 	# toposort the remaining, and divide them into parallelizable and non-parallelizable
-	# order the toposorted list according to the requested strategy
 	#
-	my $orderstrategy = $self->{args}->getOrderStrategy() || $self->{args}->getConfig()->getOrderStrategy() || $self->{orderstrategy}; 
 	my @parallelizable;
 	my @nonParallelizable;
-	foreach my $t ($orderstrategy->orderList(__toposort($self->{graph})))
+	my @topoSorted = $self->__toposort($self->{graph}); 
+	foreach my $t (@topoSorted)
 	{
 		if ($self->{args}->getConfig()->parallelizable($t))
 		{
@@ -171,6 +170,11 @@ sub getEligibleTests
 	#
 	$self->{inprogress}->{$_} = 1 foreach (@eligible);
 
+	# order the eligible ones according to the strategy
+	#
+	my $orderstrategy = $self->{args}->getOrderStrategy() || $self->{args}->getConfig()->getOrderStrategy() || $self->{orderstrategy}; 
+	@eligible = $orderstrategy->orderList(@eligible);
+		
 	return \@eligible;
 }
 
@@ -266,11 +270,9 @@ sub __scan
 # minor change is that since we will use the toposort
 # bottom-up, we push to tail of L instead of unshift to head
 # 
-# beyond dep order, we visit the nodes lexicographically sorted to have
-# at least some repeatability 
-#
 sub __toposort
 {
+	my $self = shift;
 	my $graph = shift;
 	
 	my ($unmarked, $tmpmarked, $permmarked) = (0, 1, 2);

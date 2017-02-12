@@ -35,20 +35,27 @@ sensitive. Forcibly end option parsing using '--'.
 
 =head3 EXPANDING FILES IN ARGUMENT LIST
 
-The command line may at any place contain arguments of the form F<@filename>, and which means that the F<filename>
+The command line may at any place contain arguments of the form F<@filename>, which means that the F<filename>
 will be read for arguments to insert in place. This will help if the command line is very long or is just nicely
 persisted for reuse.
 
-Further, this will work recursively, i.e. a any resulting argument of the same form, will be read. If the filename
+Further, this will work recursively, i.e. any resulting argument of the same form, will be read. If the filename
 is relative, it's assumed relative to the directory the previous file was in.
 
 The example command line C<testontap --verbose @myargs> will be expanded by reading the F<myargs> file (in the current
 directory, obviously). The F<myargs> file may contain a line of C<@/some/path/to/globalargs>, and assuming that file in
 turn contains C<@extraargs>, that file is expected to exist as F</some/path/to/extraargs>.
 
-Each line in such a file will become a single argument using the following rules:
+Note that the file is line-oriented - each line in such a file will become a B<single> argument. No whitespace
+splitting inside each value will occur, but some rules apply:
 
 =over
+
+=item * Environment variable expansion
+
+Any construction of the form C<${name}> will be assumed to be a reference to the environment variable
+'name', and the contents of it will be inserted in place. If the environment variable doesn't exist
+it is an error.
 
 =item * Line continuation
 

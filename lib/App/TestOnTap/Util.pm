@@ -161,7 +161,22 @@ sub __readLines
 			# trim the ends, and add it - but only if it's not empty
 			#
 			$line = trim($line);
-			push(@lines, $line) if $line;
+			
+			if ($line)
+			{
+				# expand any ${envvar} in the line
+				#
+				while ($line =~ m#\$\{([^}]+)\}#)
+				{
+					my $ev = $1;
+					die("No environment variable '$ev' in '$line'\n") unless exists($ENV{$ev});
+					$line =~ s#\$\{\Q$ev\E\}#$ENV{$ev}#;
+				}
+				
+				# line is ready
+				#
+				push(@lines, $line);
+			}
 		}
 	}
 	close($fh);

@@ -7,8 +7,15 @@ my $numtests = int(rand(5)) + 1;
 
 plan(tests => $numtests);
 
-note("NOTE: COMMANDLINE: '@ARGV'!\n") if grep(/^NOTE$/, @ARGV);
-diag("DIAG: COMMANDLINE: '@ARGV'!\n") if grep(/^DIAG$/, @ARGV);
+if (grep(/^NOTE$/, @ARGV))
+{
+	note("NOTE: COMMANDLINE: '$_'\n") foreach (@ARGV);
+}
+
+if (grep(/^DIAG$/, @ARGV))
+{
+	diag("DIAG: COMMANDLINE: '$_'\n") foreach (@ARGV);
+}
 
 for my $testnum (1 .. $numtests)
 {

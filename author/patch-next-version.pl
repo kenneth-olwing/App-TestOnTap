@@ -85,23 +85,18 @@ system("$mkcmd dist 2>&1");
 die("Failed making dist '$expectedDist'\n") if ($? || !-f $expectedDist);
 
 my @msg = readAll($msgfile);
-$msg[0] =~ /(\r?\n)/;
-my $msgle = $1;
-my $subj = "Release $nextVersion$msgle";
-writeAll($msgfile2, $subj, $msgle, @msg);
-die;
+my $subj = "Release $nextVersion";
+writeAll($msgfile2, $subj, "", @msg);
+
 my @tm = localtime();
 my $today = sprintf("%d-%02d-%02d\n", $tm[5] += 1900, $tm[4] + 1, $tm[3]);
 
 my @changes = readAll('Changes');
-$changes[0] =~ /(\r?\n)/;
-my $changesle = $1;
 foreach (@msg)
 {
 	$_ = "\t$_" if $_;
-	$_ =~ s/\Q$msgle\E/$changesle/;
 }
-splice(@changes, 2, 0, "$nextVersion\t$today$changesle", @msg, $changesle);
+splice(@changes, 2, 0, "$nextVersion\t$today", @msg, "");
 writeAll('Changes', @changes);
 
 print "The current branch is '$br[0]' with next version = '$nextVersion'\n";
@@ -147,6 +142,7 @@ sub readAll
 	local $\ = undef;
 	my @c = <$fh>;
 	close($fh);
+	chomp(@c);
 	
 	return @c;
 }
@@ -158,6 +154,6 @@ sub writeAll
 
 	open(my $fh, '>', $fn) or die("Failed to open '$fn': $!\n");
 	binmode($fh);
-	print $fh @c;
+	print $fh "$_\n" foreach (@c);
 	close($fh);
 }

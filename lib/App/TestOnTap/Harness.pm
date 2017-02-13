@@ -7,7 +7,7 @@ use base qw(TAP::Harness);
 
 use App::TestOnTap::Scheduler;
 use App::TestOnTap::Dispenser;
-use App::TestOnTap::Util qw(getExtension slashify);
+use App::TestOnTap::Util qw(getExtension slashify $IS_PACKED);
 
 use TAP::Formatter::Console;
 use TAP::Formatter::File;
@@ -59,9 +59,19 @@ sub runtests
 		$ENV{TESTONTAP_TMP_DIR} = $wdmgr->getTmp();
 		$ENV{TESTONTAP_PRIVATE_DIR} = $wdmgr->getPrivate();
 		
+		# as a very special workaround - when running as a packed binary, any PERL5LIB envvar
+		# is cleared, but if it's really needed, any TESTONTAP_PERL5LIB will be used to reinsert
+		# it here for our children
+		# 
+		$ENV{PERL5LIB} = $ENV{TESTONTAP_PERL5LIB} if ($IS_PACKED && $ENV{TESTONTAP_PERL5LIB});
+		
 		$wdmgr->beginTestRun();
 		$aggregator = $self->SUPER::runtests(@pairs); 
 		$wdmgr->endTestRun($self->{testontap}->{args}, $aggregator);
+		
+		# drop the special workaround envvar...
+		#
+		delete $ENV{PERL5LIB} if $IS_PACKED;
 	}
 	
 	my $failed = $aggregator->failed() || 0;

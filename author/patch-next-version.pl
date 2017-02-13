@@ -89,7 +89,7 @@ $msg[0] =~ /(\r?\n)/;
 my $msgle = $1;
 my $subj = "Release $nextVersion$msgle";
 writeAll($msgfile2, $subj, $msgle, @msg);
-
+die;
 my @tm = localtime();
 my $today = sprintf("%d-%02d-%02d\n", $tm[5] += 1900, $tm[4] + 1, $tm[3]);
 

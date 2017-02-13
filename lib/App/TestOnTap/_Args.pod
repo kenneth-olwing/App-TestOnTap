@@ -38,6 +38,10 @@ If given, this option causes all other options to be ignored (apart from the acc
 
 Note that this can not be used when you already run a binary.
 
+When a packed binary is run, any C<PERL5LIB> envvar is just dropped which is understandable, but as a very special
+case, you find it needed when running the tests, set the C<TESTONTAP_PERL5LIB> to the desired value and the
+C<PERL5LIB> variable will be reinstated with that value during the tests running.  
+
 =item B<--_pp-variant E<lt>valueE<gt>>
 
 This is an optional value that will be tacked on to the automatically calculated name by

@@ -415,6 +415,7 @@ sub __createBinary
 			@liblocs,
 			'-a', "$argsPodInput;lib/$argsPodName",
 			'-a', "$manualPodInput;lib/$manualPodName",
+			'-M', 'Encode::*',
 			'-o', $output,
 			slashify("$RealBin/$Script")
 		);

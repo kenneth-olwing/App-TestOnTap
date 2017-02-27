@@ -28,7 +28,7 @@ sub __analyze
 	# find all tests in the suite root
 	# (subject to config skip filtering)
 	#	
-	my $tests = __scan($self->{args}->getSuiteRoot(), $self->{args}->getConfig());
+	my $tests = $self->__scan();
 
 	# create a graph with all the tests as 'from' vertices, begin with no dependencies
 	#
@@ -41,6 +41,8 @@ sub __analyze
 		my ($fromVertices, $toVertices) = $self->{args}->getConfig()->getMatchesAndDependenciesForRule($depRuleName, $tests);
 		push(@{$graph{$_}}, @$toVertices) foreach (@$fromVertices);
 	}
+	
+	$self->{args}->getWorkDirManager()->recordFullGraph(%graph);
 		
 	# trap any cyclic dependency problems right now
 	#
@@ -58,7 +60,7 @@ sub __analyze
 	# ...but now make sure dependencies are brought along whether
 	# they we're filtered in or not...
 	#
-	if ($prunedTests)
+	if ($prunedTests && scalar(@$prunedTests) != scalar(@$tests))
 	{
 		my %prunedGraph;
 
@@ -78,6 +80,8 @@ sub __analyze
 		# store the pruned graph instead
 		#
 		$self->{graph} = \%prunedGraph;
+		
+		$self->{args}->getWorkDirManager()->recordPrunedGraph(%prunedGraph);
 	}
 }
 
@@ -141,6 +145,7 @@ sub getEligibleTests
 	# order them according to the chosen strategy
 	#
 	my $orderstrategy = $self->{args}->getOrderStrategy() || $self->{args}->getConfig()->getOrderStrategy() || $self->{orderstrategy}; 
+	$self->{args}->getWorkDirManager()->recordOrderStrategy($orderstrategy);
 	@parallelizable = $orderstrategy->orderList(@parallelizable);
 	@nonParallelizable = $orderstrategy->orderList(@nonParallelizable);
 	
@@ -163,6 +168,8 @@ sub getEligibleTests
 	#
 	$self->{inprogress}->{$_} = 1 foreach (@eligible);
 
+	$self->{args}->getWorkDirManager()->recordDispensedOrder(@eligible);
+	
 	return \@eligible;
 }
 
@@ -174,14 +181,15 @@ sub getEligibleTests
 #
 sub __scan
 {
-	my $suiteRoot = shift;
-	my $config = shift;
+	my $self = shift;
+
+	my $config = $self->{args}->getConfig();
 	
 	my @tests;
 	
 	# to simplify during preprocessing, ensure we have a suite root using forward slashes
 	#
-	my $srfs = slashify($suiteRoot, '/');
+	my $srfs = slashify($self->{args}->getSuiteRoot(), '/');
 	
 	# set up a File::Find preprocessor in order to weed out parts of the scanned tree
 	# that are selected by the optional config skip filter
@@ -249,10 +257,12 @@ sub __scan
 	#
 	find( { preprocess => $preprocess, wanted => $wanted }, $srfs);
 	
+	$self->{args}->getWorkDirManager()->recordFoundTests(@tests);
+	
 	return \@tests;
 }
 
-# essentially follows the algo for depth-first search as described
+# essentially follows the algorithm for depth-first search as described
 # at https://en.wikipedia.org/wiki/Topological_sorting
 #
 # minor change is that since we will use the toposort

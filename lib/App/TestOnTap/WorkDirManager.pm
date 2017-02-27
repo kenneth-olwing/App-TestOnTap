@@ -50,7 +50,13 @@ sub new
 						private => slashify("$workdir/data/private"),
 						tap =>  slashify("$workdir/data/tap"),
 						result =>  slashify("$workdir/data/result"),
-						json => JSON->new()->utf8()->pretty()->canonical() 
+						json => JSON->new()->utf8()->pretty()->canonical(),
+						orderstrategy => undef,
+						dispensedorder => [],
+						foundtests => [],
+						commandlines => {},
+						fullgraph => undef,
+						prunedgraph => undef,
 					},
 					$class
 				);
@@ -94,7 +100,17 @@ sub endTestRun
 			todo_passed => [ $aggregator->todo_passed() ],
 		};
 	$self->__save("$self->{root}/data/summary", $summary);
-	
+
+	my $testinfo =
+		{
+			dispensedorder => $self->{dispensedorder},
+			found => $self->{foundtests},
+			commandlines => $self->{commandlines},
+			fullgraph => $self->{fullgraph},
+			prunedgraph => $self->{prunedgraph},
+		};
+	$self->__save("$self->{root}/data/testinfo", $testinfo);
+
 	my $elapsed = $aggregator->elapsed();
 	my $meta =
 		{
@@ -117,7 +133,8 @@ sub endTestRun
 			argv => $args->getFullArgv(),
 			defines => $args->getDefines(),
 			platform => $^O,
-			uname => [ uname() ]
+			uname => [ uname() ],
+			order => $self->{orderstrategy} ? $self->{orderstrategy}->getStrategyName() : undef,
 		};
 	$self->__save("$self->{root}/data/meta", $meta);
 }
@@ -261,6 +278,55 @@ sub getPrivate
 	my $self = shift;
 	
 	return $self->{private};
+}
+
+sub recordOrderStrategy
+{
+	my $self = shift;
+	my $orderstrategy = shift;
+	
+	$self->{orderstrategy} = $orderstrategy;
+}
+
+sub recordDispensedOrder
+{
+	my $self = shift;
+	my @dispensed = @_;
+	
+	push(@{$self->{dispensedorder}}, @dispensed);	
+}
+
+sub recordFoundTests
+{
+	my $self = shift;
+	my @foundTests = @_;
+	
+	push(@{$self->{foundtests}}, @foundTests);	
+}
+
+sub recordFullGraph
+{
+	my $self = shift;
+	my %fullgraph = @_;
+	
+	$self->{fullgraph} = \%fullgraph;	
+}
+
+sub recordPrunedGraph
+{
+	my $self = shift;
+	my %prunedgraph = @_;
+	
+	$self->{prunedgraph} = \%prunedgraph;	
+}
+
+sub recordCommandLine
+{
+	my $self = shift;
+	my $test = shift;
+	my $cmdline = shift;
+	
+	$self->{commandlines}->{$test} = $cmdline;	
 }
 
 sub __save

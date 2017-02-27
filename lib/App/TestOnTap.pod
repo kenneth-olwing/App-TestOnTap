@@ -445,6 +445,7 @@ The test suite result tree in /tmp will look like this:
   -- env.json
   -- meta.json
   -- summary.json
+  -- testinfo.json
   -- private/
   -- -- ioperf.xml
   -- result/
@@ -468,7 +469,7 @@ The test suite result tree in /tmp will look like this:
   -- -- -- pp1.pl.tap
   -- -- -- pp2.pl.tap
 
-General note is that 'json' files are in UTF-8.
+All 'json' files are in UTF-8.
 
 The described format version here is '0.1', and is indicated in the meta-data below (as format => major, minor).
 
@@ -549,6 +550,12 @@ The FQDN for the host where the test was run.
 
 The job slots used when the test was run.
 
+=item * order (string)
+
+The name of the order strategy used.
+
+May in rare instances be a null value, e.g. for a suite with no tests.
+
 =item * platform (string)
 
 The platform of the host where the test was run.
@@ -574,6 +581,40 @@ Data from the uname() function.
 The name of the user that ran the test.
 
 =back 
+
+=item * testinfo.json
+
+This holds various information about tests found and acted upon.
+
+=over
+
+=item * commandlines (key/value pairs)
+
+Test names as keys with values being the command line used to run them.
+
+=item * dispensedorder (list of strings)
+
+Test names in the order they were dispensed to the scheduler.
+
+Note that this list may not have all 'found' tests due to a commandline C<--skip/--include> rule.
+
+=item * found (list of strings)
+
+Test names in the order they were found during scan.
+
+=item * fullgraph (key/value pairs)
+
+Test names as keys, with values being lists of its dependencies. 
+
+=item * prunedgraph (key/value pairs)
+
+Test names as keys, with values being lists of its dependencies, but after any
+commandline C<--skip/--include> rules has been applied to give the actual dependencies.
+
+Note that this is a null value if the 'pruned' list of tests is the same as the starting list, i.e.
+the pruned graph would be the same as the full graph.
+
+=back
 
 =item * summary.json
 
@@ -621,7 +662,7 @@ Tests with TODO's that unexpectedly passed.
 
 =item * private/
 
-Any files in this directory are written by the test suite itself and is defined by that.
+Any files in this directory are written by the test suite and is thus fully defined by the suite itself.
 
 =item * result/
 
@@ -709,7 +750,7 @@ The TAP version detected.
 
 =item * tap/
 
-The structure below this directory mimics the structure in the suite. Every test is represented by
+The structure below this directory mimics the structure in the suite. Every test run is represented by
 a file with the extension '.tap', and is the actual output given by the test (which ought to be
 TAP, but in case of a broken test or an executable mistaken for a test, may show non-existent
 or broken TAP, and if so, should show up with parse errors in the summary).

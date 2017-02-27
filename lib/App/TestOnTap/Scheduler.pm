@@ -95,7 +95,7 @@ sub get_job
 		}
 		else
 		{
-			# the queue is empty (but still active), so spin our wheels a bit... 
+			# the queue is empty but still active, so spin our wheels a bit... 
 			#
 			$job = $self->{spinner}; 
 		}

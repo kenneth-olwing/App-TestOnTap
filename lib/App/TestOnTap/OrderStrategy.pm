@@ -48,4 +48,11 @@ sub orderList
 	return @l;
 }
 
+sub getStrategyName
+{
+	my $self = shift;
+	
+	return $self->{strategy};
+}
+
 1;

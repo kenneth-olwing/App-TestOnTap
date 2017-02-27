@@ -53,6 +53,7 @@ my $expected_tree =
 				summary.json
 				tap/
 				tap/t.pl.tap
+				testinfo.json
 			)
 	];
 

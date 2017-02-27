@@ -107,7 +107,17 @@ sub __getExecMapper
 		
 				my $cmd = $args->getConfig()->getCommandForExtension(getExtension($testfile));
 				my $argv = $args->getArgv();
-				return [ @$cmd, $testfile, @$argv ];
+				
+				my $cmdline = [ @$cmd, $testfile, @$argv ];
+				
+				# trim down the full file name to the test name
+				#
+				my $srfs = slashify($args->getSuiteRoot(), '/');
+				my $testname = slashify($testfile, '/');
+				$testname =~ s#^\Q$srfs\E/##;
+				$args->getWorkDirManager()->recordCommandLine($testname, $cmdline);
+				
+				return $cmdline;
 			};
 }
 

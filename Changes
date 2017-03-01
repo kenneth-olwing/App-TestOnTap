@@ -1,5 +1,9 @@
 Revision history for App-TestOnTap
 
+0.024	2017-03-01
+
+	Added the testinfo.json file to the result.
+
 0.023	2017-02-13
 
 	Fixes for a packed binary: Encode::* modules should be included. Setting TESTONTAP_PERL5LIB will set PERL5LIB when tests are run.

@@ -1,5 +1,9 @@
 Revision history for App-TestOnTap
 
+0.025	2017-03-02
+
+	Try another tack for Config::Std issue
+
 0.024	2017-03-01
 
 	Added the testinfo.json file to the result.

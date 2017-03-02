@@ -13,6 +13,8 @@ use App::TestOnTap::Args;
 use App::TestOnTap::Harness;
 use App::TestOnTap::Util qw($IS_PACKED);
 
+use Config::Std qw(read_config);
+
 # These are (known) implicit dependencies, and listing them like this
 # allows scanners like perlapp to pick up on them
 # 
@@ -30,10 +32,8 @@ require TAP::Formatter::Console::ParallelSession if 0;
 #
 if ($IS_PACKED)
 {
-	require Config::Std;
-	Config::Std->import('read_config');
 	my $dummy1 = '';
-	Config::Std::read_config(\$dummy1, my %cfg);
+	read_config(\$dummy1, my %cfg);
 	my $dummy2 = *Config::Std::Hash::DEMOLISH;
 	my $dummy3 = *Config::Std::Hash::DEMOLISH;
 }

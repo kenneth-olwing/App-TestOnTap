@@ -40,6 +40,16 @@ sub __readCfgFile
 	if (-e $configFilePath && !$App::TestOnTap::_dbgvars::IGNORE_CONFIG_FILE)
 	{
 		read_config($configFilePath, $cfg);
+		
+		# this looks weird, I know - see https://rt.cpan.org/Public/Bug/Display.html?id=56862
+		#
+		# I seem to hit the problem with "Warning: Name "Config::Std::Hash::DEMOLISH" used only once..."
+		# when running a Par::Packer binary but not when as a 'normal' script.
+		#
+		# The below incantation seem to get rid of that, at least for now. Let's see if it reappears... 
+		#
+		my $dummy = *Config::Std::Hash::DEMOLISH;
+		$dummy = *Config::Std::Hash::DEMOLISH;
 	}
 	else
 	{

@@ -1,1 +1,1 @@
-here we're going to write some cool tests
+here we're going to write something cool

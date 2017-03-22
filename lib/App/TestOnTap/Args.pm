@@ -63,6 +63,7 @@ sub __parseArgv
 			savedirectory => undef,		# don't save results (unless -archive is used)
 			archive => 0,				# don't save results as archive
 			v => 0,						# don't let through output from tests
+			harness => 1,				# use the normal test harness
 			
 			# hidden
 			#
@@ -90,6 +91,7 @@ sub __parseArgv
 			'savedirectory=s',
 			'archive!',
 			'v|verbose+',
+			'harness!',
 			
 			# hidden
 			#
@@ -123,7 +125,7 @@ sub __parseArgv
 
 	# simple copies
 	#
-	$self->{$_} = $rawOpts{$_} foreach (qw(v archive defines timer));
+	$self->{$_} = $rawOpts{$_} foreach (qw(v archive defines timer harness));
 
 	# help with the hidden flags...
 	#
@@ -355,6 +357,13 @@ sub getConfig
 	my $self = shift;
 	
 	return $self->{config};
+}
+
+sub useHarness
+{
+	my $self = shift;
+	
+	return $self->{harness};
 }
 
 sub include

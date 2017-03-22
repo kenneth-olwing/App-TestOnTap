@@ -12,6 +12,8 @@ use App::TestOnTap::Util qw(getExtension slashify $IS_PACKED);
 use TAP::Formatter::Console;
 use TAP::Formatter::File;
 
+use List::Util qw(max);
+
 sub new
 {
 	my $class = shift;
@@ -49,7 +51,7 @@ sub runtests
 	my @pairs;
 	push(@pairs, [ slashify("$sr/$_"), $_ ]) foreach ($self->{testontap}->{pez}->getAllTests());
 
-	my $aggregator;
+	my $failed = 0;
 	{
 		my $wdmgr = $self->{testontap}->{args}->getWorkDirManager();
 
@@ -64,17 +66,54 @@ sub runtests
 		# it here for our children
 		# 
 		$ENV{PERL5LIB} = $ENV{TESTONTAP_PERL5LIB} if ($IS_PACKED && $ENV{TESTONTAP_PERL5LIB});
-		
-		$wdmgr->beginTestRun();
-		$aggregator = $self->SUPER::runtests(@pairs); 
-		$wdmgr->endTestRun($self->{testontap}->{args}, $aggregator);
+
+		if ($self->{testontap}->{args}->useHarness())
+		{
+			# the normal case is to run with a 'real' harness that parses
+			# TAP, handles parallelization, formatters and all that
+			#
+			$wdmgr->beginTestRun();
+			my $aggregator = $self->SUPER::runtests(@pairs); 
+			$wdmgr->endTestRun($self->{testontap}->{args}, $aggregator);
+			$failed = $aggregator->failed() || 0;
+		}
+		else
+		{
+			# if the user has requested 'no harness', just run the jobs serially
+			# in the right context, but make no effort to parse their output
+			# in any way - more convenient for debugging (esp. with an execmap
+			# that can start a test in debug mode)
+			#
+			my $scheduler = $self->make_scheduler(@pairs);
+
+			# figure out the longest test file name with some extra to produce some
+			# nice delimiters...
+			#
+			my $longestTestFileName = 0;
+			$longestTestFileName = max($longestTestFileName, length($_->[0])) foreach (@pairs);
+			$longestTestFileName += 10;
+			my $topDelimLine = '#' x $longestTestFileName;
+			my $bottomDelimLine = '-' x $longestTestFileName;
+
+			while (my $job = $scheduler->get_job())
+			{
+				my $desc = $job->description();
+				my $filename = $job->filename;
+				my $cmdline = $self->exec->($self, $filename);
+				print "$topDelimLine\n";
+				print "Run test '$desc' using:\n";
+				print "  $_\n" foreach (@$cmdline);
+				print "$bottomDelimLine\n";
+				$failed++ if system(@$cmdline) >> 8;
+				$job->finish();
+			}	
+		}
 		
 		# drop the special workaround envvar...
 		#
 		delete $ENV{PERL5LIB} if $IS_PACKED;
 	}
 	
-	my $failed = $aggregator->failed() || 0;
 	return ($failed > 127) ? 127 : $failed;
 }
 
@@ -89,7 +128,7 @@ sub _open_spool
 sub _close_spool
 {
     my $self = shift;
-    my $parser = shift;;
+    my $parser = shift;
 
 	$self->{testontap}->{args}->getWorkDirManager()->closeTAPHandle($parser);
 

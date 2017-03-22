@@ -7,6 +7,7 @@ Commandline options and arguments understood for TestOnTap processing
 =head1 SYNOPSIS
 
  testontap
+ 	[ @argfile ] # I<see 'EXPANDING FILES IN ARGUMENT LIST' below for details> 
     [
         --usage | -?
             |
@@ -22,12 +23,13 @@ Commandline options and arguments understood for TestOnTap processing
     [ --jobs <n> ]
     [ --order <strategy> ]
     [ --timer ]
+    [ --no-harness ]
     [ --execmap <mapfile> ]
     [ --archive ]
     [ --savedirectory <path> ]
     [ --define | -D <key>=<value> [ --define ... ] ]
     <suitepath>
-    [<suiteargs> ...]
+    [<suiteargs> ...]  
 
 =head1 OPTIONS AND ARGUMENTS
 
@@ -43,9 +45,10 @@ persisted for reuse.
 Further, this will work recursively, i.e. any resulting argument of the same form, will be read. If the filename
 is relative, it's assumed relative to the directory the previous file was in.
 
-The example command line C<testontap --verbose @myargs> will be expanded by reading the F<myargs> file (in the current
-directory, obviously). The F<myargs> file may contain a line of C<@/some/path/to/globalargs>, and assuming that file in
-turn contains C<@extraargs>, that file is expected to exist as F</some/path/to/extraargs>.
+The example command line C<testontap --verbose @myargs --jobs 10 @moreargs> will be expanded by reading the F<myargs>
+and F<moreargs> files (in the current directory, obviously). The read files may contain a line of
+C<@/some/path/to/globalargs>, and assuming that file in turn contains C<@extraargs>,
+that file is expected to exist as F</some/path/to/extraargs>.
 
 Note that the file is line-oriented - each line in such a file will become a B<single> argument. No whitespace
 splitting inside each value will occur, but some rules apply:
@@ -203,6 +206,31 @@ This will explicitly shuffle the order randomly.
 This turns on the display of timing information for tests when running.
 
 Note that the information is always present in persisted results, this just controls the display when running a suite. 
+
+=item B<--no-harness>
+
+This turns on a special mode where tests are run with no capture and parsing of
+output. Printouts go directly to stdout/err, and stdin is active.
+
+This can be convenient to directly see the TAP (or other) output which can be handy
+for debugging the tests themselves. Also, since stdin should work normally, using an
+execmap that starts the test in debug mode enables them to run under a real debugger.
+
+ Example execmap file 'debug.execmap':
+ 
+ [EXECMAP]
+ pl = perl -d
+
+and run with:
+
+ testontap --no-harness --execmap debug.execmap some/path/to/suite
+ 
+would start all perl tests under the Perl debugger.
+
+Note that this renders several options and mechanisms useless:
+for example C<--verbose>, C<--jobs>, C<--timer>. Also, the work directory
+will miss most of the data normally seen, such as TAP output, aggregated
+test results etc. 
 
 =item B<--execmap E<lt>mapfileE<gt>>
 

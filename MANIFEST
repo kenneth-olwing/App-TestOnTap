@@ -137,6 +137,7 @@ t/20-verify_saved_dir.t
 t/21-verify_saved_archive.t
 t/30-basic_parallel.t
 t/40-custom_emap.t
+t/50-no-harness.t
 t/config.testontap
 t/lib/TestUtils.pm
 t/misc/weird.execmap
@@ -155,6 +156,7 @@ t/tsuites/custom_emap/t.weird1
 t/tsuites/custom_emap/t.weird2
 t/tsuites/empty/placeholder
 t/tsuites/fail/oops.pl
+t/tsuites/no-harness/normal.pl
 t/tsuites/ordering/alphabetic_config.testontap
 t/tsuites/ordering/config.testontap
 t/tsuites/ordering/natural_config.testontap

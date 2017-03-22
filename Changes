@@ -1,5 +1,9 @@
 Revision history for App-TestOnTap
 
+0.027	2017-03-22
+
+	Implementation of --no-harness feature
+
 0.026	2017-03-13
 
 	Another try to get rid of the Config::Std DEMOLISH weirdness

@@ -219,13 +219,14 @@ execmap that starts the test in debug mode enables them to run under a real debu
  Example execmap file 'debug.execmap':
  
  [EXECMAP]
- pl = perl -d
+ match1 = eq(some/test.pl)
+ cmd1 = perl -d
 
 and run with:
 
  testontap --no-harness --execmap debug.execmap some/path/to/suite
  
-would start all perl tests under the Perl debugger.
+would start the some/test.pl file under the Perl debugger.
 
 Note that this renders several options and mechanisms useless:
 for example C<--verbose>, C<--jobs>, C<--timer>. Also, the work directory

@@ -7,7 +7,7 @@ use base qw(TAP::Harness);
 
 use App::TestOnTap::Scheduler;
 use App::TestOnTap::Dispenser;
-use App::TestOnTap::Util qw(getExtension slashify $IS_PACKED);
+use App::TestOnTap::Util qw(slashify $IS_PACKED);
 
 use TAP::Formatter::Console;
 use TAP::Formatter::File;
@@ -144,16 +144,22 @@ sub __getExecMapper
 				my $harness = shift;
 				my $testfile = shift;
 		
-				my $cmd = $args->getConfig()->getCommandForExtension(getExtension($testfile));
-				my $argv = $args->getArgv();
-				
-				my $cmdline = [ @$cmd, $testfile, @$argv ];
-				
 				# trim down the full file name to the test name
 				#
 				my $srfs = slashify($args->getSuiteRoot(), '/');
 				my $testname = slashify($testfile, '/');
 				$testname =~ s#^\Q$srfs\E/##;
+
+				# get the commandline corresponding to the test name
+				#
+				my $cmdline = $args->getConfig()->getExecMapping($testname);
+				
+				# expand it with the full set
+				#
+				$cmdline = [ @$cmdline, $testfile, @{$args->getArgv()} ];
+				
+				# make a note of the result for the work area records
+				#
 				$args->getWorkDirManager()->recordCommandLine($testname, $cmdline);
 				
 				return $cmdline;

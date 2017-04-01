@@ -3,7 +3,7 @@ package App::TestOnTap::Dispenser;
 use strict;
 use warnings;
 
-use App::TestOnTap::Util qw(slashify getExtension);
+use App::TestOnTap::Util qw(slashify);
 use App::TestOnTap::OrderStrategy;
 
 use File::Find;
@@ -243,13 +243,16 @@ sub __scan
 			#
 			return if -d $fn;
 			
-			# ignore files with extensions not handled by the exec mapper
-			#			
-			return unless $config->mapsExtension(getExtension($fn));
-
-			# a bona fide test found - normalize it and store
+			# normalize to test name
 			#
 			$fn =~ s#^\Q$srfs\E/##;
+
+			# ignore files with extensions not handled by the exec mapper
+			#			
+			return unless $config->hasExecMapping($fn);
+
+			# store it as a test!
+			#
 			push(@tests, $fn);
 		};
 	

@@ -16,7 +16,6 @@ our @EXPORT_OK =
 		(
 			slashify
 			trim
-			getExtension
 			stringifyTime
 			expandAts
 			$IS_WINDOWS
@@ -48,18 +47,6 @@ sub trim
 	$s =~ s/^\s+|\s+$//g if defined($s);
 
 	return $s;
-}
-
-sub getExtension
-{
-	my $p = shift;
-	
-	my $bn = basename($p);
-
-	my $lastPer = rindex($bn, '.');
-	return if $lastPer == -1;
-
-	return substr($bn, $lastPer + 1); 
 }
 
 # turn an epoch time into a compact ISO8601 UTC string

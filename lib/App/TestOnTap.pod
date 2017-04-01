@@ -231,22 +231,27 @@ If not given, the default commandline setting applies (C<none>).
 
 =item B<[EXECMAP]> (section)
 
-This section is optional, but recommended. It details how files with particular file extensions should be executed.
+This section is optional, but recommended. It details how to decide which files are tests and how they should be executed. 
 Note that there is also possible to pass a file with this section manually using the '--execmap' option, in order
 to override or complement any defined execmap.
 
-The section should contain key/values where the key lists one or more extensions and the value details the command
-to use for those extensions. The value may be in multi-line/part format, which is required if the command contains
+The section should contain matched pairs of key/values named C<matchI<n>> and C<cmdI<n>>, where the C<match> part defines
+a L<Grep::Query> expression to match to test names, and the C<cmd> part defines the command line to use for matching tests.
+The numbering defines the match order, i.e. tests will be checked for matches in ascending numerical order. 
+
+The C<cmd> value may be in multi-line/part format, which is required if the command contains
 whitespace in the individual parts. A plain string will be split on space in order to separate the command into
 parts.
 
 Example:
 
   [EXECMAP]
-  pl t = perl
-  jar = java
-      = -jar
-  # in this case, could also have been written simpler as 'jar = java -jar'
+  match1 = regexp/\.(t|pl)$/
+  cmd1 = perl
+  match2 = regexp(\.jar$)
+  cmd2 = java
+       = -jar
+  # in this case, could also have been written simpler as 'cmd2 = java -jar'
   
 This means that any files found with the extensions 'pl' or 't' will be run by 'perl <file>' and that any 'jar' files
 will be run by 'java -jar <file>'. Any other files will be ignored.
@@ -254,20 +259,26 @@ will be run by 'java -jar <file>'. Any other files will be ignored.
 If no "EXECMAP" section is present, a default one will be used, equivalent to this for this release:
 
   [EXECMAP]
-  pl t = perl
-  jar = java
-      = -jar
-  py = python
-  groovy gsh gvy gy = groovy
+  match1 = regexp[\.(t|pl)$]
+  cmd1 = perl
+  match2 = regexp[\.py$]
+  cmd2 = python
+  match3 = regexp[\.jar$]
+  cmd3 = java
+       = -jar
+  match4 = regexp[\.(groovy|gsh|gvy|gy)$]
+  cmd4 = groovy
   # only on windows
-  bat cmd = cmd.exe
-          = /c
+    match5 = regexp[\.(bat|cmd)$]
+    cmd5 = cmd.exe
+         = /c
   # only on unix/linux
-  sh = /bin/sh
+    match5 = regexp[\.sh$]
+    cmd5 = /bin/sh
 
-While useful in the early stages for quickly getting started, good form is to ensure the execmap is explicit, avoiding
-surprises if other extensions are added to the default, and also to use the "skip" key to ensure only expected files are
-selected as tests regardless.
+While useful in the early stages for quickly getting started, good form is to ensure the execmap is explicitly 
+defined in the configuration, avoiding surprises if other extensions are added to the default, and also to use
+the "skip" key to ensure only expected files are selected as tests.
 
 =item B<[DEPENDENCY E<lt>nameE<gt>]> (section)
 

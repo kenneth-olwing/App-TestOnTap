@@ -182,20 +182,20 @@ sub parallelizable
 			: 0;
 }
 
-sub mapsExtension
+sub hasExecMapping
 {
 	my $self = shift;
-	my $ext = shift;
+	my $testName = shift;
 
-	return $self->{execmap}->mapsExtension($ext);	
+	return $self->{execmap}->hasMapping($testName);	
 }
 
-sub getCommandForExtension
+sub getExecMapping
 {
 	my $self = shift;
-	my $ext = shift;
+	my $testName = shift;
 
-	return $self->{execmap}->getCommandForExtension($ext);	
+	return $self->{execmap}->getMapping($testName);	
 }
 
 sub getDependencyRuleNames

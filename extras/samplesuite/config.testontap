@@ -27,4 +27,5 @@ match = regexp(picproc/.*)
 dependson = eq(basic_picture_processing_setup.pl)
 
 [EXECMAP]
-pl = perl
+match10 = regexp(\.pl$)
+cmd10 = perl

@@ -1,5 +1,16 @@
 Revision history for App-TestOnTap
 
+0.029	2017-04-01
+
+	Non-backwards compatible rewrite of the execmap
+	
+	No longer deals with just 'file extensions', but instead actual
+	Grep::Query expressions. This makes it possible to be very fine-grained
+	in how individual tests are run. In particular, using --no-harness and
+	--execmap from the commandline makes it easy to run a single test with a
+	debugger.
+	    
+
 0.028	2017-03-23
 
 	Implementation of --no-harness feature

@@ -25,7 +25,9 @@ use File::Path;
 use File::Temp qw(tempdir);
 use POSIX;
 use UUID::Tiny qw(:std);
-use LWP::Simple;
+
+BEGIN { $ENV{PERL_LWP_SSL_VERIFY_HOSTNAME} = 0 }
+use LWP::UserAgent;
 
 # CTOR
 #
@@ -465,8 +467,12 @@ sub __findSuiteRoot
 			#
 			my $localzip = slashify("$tmpdir/local.zip");
 			print "Attempting to download '$suiteroot' => $localzip...\n" if $self->{v};
-			my $rc = getstore($suiteroot, $localzip);
-			die("Treated '$suiteroot' as URL - failed to download : $rc\n") if (is_error($rc) || !-f $localzip);
+			my $response = LWP::UserAgent->new()->get($suiteroot, ':content_file' => $localzip);
+			if ($response->is_error() || !-f $localzip)
+			{
+				my $rc = $response->code();
+				die("Treated '$suiteroot' as URL - failed to download : $rc\n");
+			}
 			$zipfile = $localzip;
 		}
 		

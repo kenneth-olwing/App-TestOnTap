@@ -1,5 +1,9 @@
 Revision history for App-TestOnTap
 
+0.030	2017-04-11
+
+	When using 'suiteroots' as URL:s to zip files, use LWP::UserAgent and disable host check for https
+
 0.029	2017-04-01
 
 	Non-backwards compatible rewrite of the execmap

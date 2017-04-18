@@ -21,8 +21,9 @@ my $configure_requires =
 
 my $test_requires =
 	{
-		'Test::More'	=>	0.88,	# anything less lacks "done_testing()"...
-		'Capture::Tiny'	=>	0,		# initial dev used: 0.30
+		# very old ones lack "done_testing()", and recent one changes a newline behavior
+		'Test::More'	=>	1.302078,
+		'Capture::Tiny'	=>	0,			# initial dev used: 0.30
 	};
 
 my $eumm_understands_meta_merge = $ExtUtils::MakeMaker::VERSION ge '6.46';

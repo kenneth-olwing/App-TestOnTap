@@ -1,5 +1,11 @@
 Revision history for App-TestOnTap
 
+0.031	2017-04-18
+
+	A recent Test::More fix changed a behavior (empty output line removed). 
+	
+	Test and dependency updated.    
+
 0.030	2017-04-11
 
 	When using 'suiteroots' as URL:s to zip files, use LWP::UserAgent and disable host check for https

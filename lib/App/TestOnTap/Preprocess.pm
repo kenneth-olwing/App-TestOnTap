@@ -49,7 +49,7 @@ sub __execPreprocess
 	my @cmdcp = (@$cmd, @{$self->getArgv()});
 	$_ = "$SHELL_ARG_DELIM$_$SHELL_ARG_DELIM" foreach (@cmdcp);
 	my $cmdString = join(' ', @cmdcp);
-	my @preproc = qx("$cmdString 2>&1");
+	my @preproc = qx($cmdString 2>&1);
 	my $xit = $? >> 8;
 	chdir($cwd) || die("Failed to change directory back to '$cwd': $!\n");
 	die("Error $xit when running preprocess command: @preproc\n") if $xit;
@@ -89,8 +89,8 @@ sub __parseEnvLines
 	while (my $line = shift(@$preproc))
 	{
 		last if $line =~ /^\s*#\s*END\s+\Q$type\E\s*$/;
-		die("Invalid $type line during preprocessing: '$line'\n") unless ($line =~ /^([^=]+)=(.+)/);
-		$env{$1} = $2;
+		die("Invalid $type line during preprocessing: '$line'\n") unless ($line =~ /^([^=]+)=(.*)/);
+		$env{$1} = $2 || '';
 	}
 	
 	$self->{env} = \%env;

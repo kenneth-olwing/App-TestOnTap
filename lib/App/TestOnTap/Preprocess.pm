@@ -1,5 +1,7 @@
 package App::TestOnTap::Preprocess;
 
+use App::TestOnTap::Util qw($SHELL_ARG_DELIM);
+
 use POSIX;
 
 use strict;
@@ -44,7 +46,9 @@ sub __execPreprocess
 	my $cwd = getcwd();
 	my $suiteRoot = $args->getSuiteRoot(); 
 	chdir($suiteRoot) || die("Failed to change directory to '$suiteRoot': $!\n");
-	my $cmdString = join(' ', @$cmd, @{$self->getArgv()});
+	my @cmdcp = (@$cmd, @{$self->getArgv()});
+	$_ = "$SHELL_ARG_DELIM$_$SHELL_ARG_DELIM" foreach (@cmdcp);
+	my $cmdString = join(' ', @cmdcp);
 	my @preproc = qx("$cmdString 2>&1");
 	my $xit = $? >> 8;
 	chdir($cwd) || die("Failed to change directory back to '$cwd': $!\n");

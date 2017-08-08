@@ -3,7 +3,7 @@ package App::TestOnTap::Config;
 use strict;
 use warnings;
 
-use App::TestOnTap::Util qw(slashify $SHELL_ARG_DELIM);
+use App::TestOnTap::Util qw(slashify);
 use App::TestOnTap::OrderStrategy;
 use App::TestOnTap::_dbgvars;
 
@@ -107,7 +107,6 @@ sub __readCfgFile
 				: ($preprocesscmd =~ m#\n#)
 					? [ split("\n", $preprocesscmd) ]
 					: [ split(' ', $preprocesscmd) ];
-		$_ = "$SHELL_ARG_DELIM$_$SHELL_ARG_DELIM" foreach (@$preprocesscmd);
 	}
 	$self->{preprocesscmd} = $preprocesscmd;
 	

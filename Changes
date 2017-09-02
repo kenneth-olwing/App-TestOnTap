@@ -1,5 +1,9 @@
 Revision history for App-TestOnTap
 
+0.036	2017-09-02
+
+	Don't trap preprocessing STDERR
+
 0.035	2017-08-08
 
 	New capability: 'preprocess' for env/argv

@@ -13,8 +13,6 @@ use App::TestOnTap::Args;
 use App::TestOnTap::Harness;
 use App::TestOnTap::Util qw($IS_PACKED);
 
-use Config::Std qw(read_config);
-
 # These are (known) implicit dependencies, and listing them like this
 # allows scanners like perlapp to pick up on them
 # 

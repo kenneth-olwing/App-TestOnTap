@@ -3,7 +3,7 @@ package App::TestOnTap::ExecMap;
 use strict;
 use warnings;
 
-use App::TestOnTap::Util qw(trim $IS_WINDOWS);
+use App::TestOnTap::Util qw(trim $IS_WINDOWS ensureArray);
 
 use Config::Std;
 use Grep::Query;
@@ -78,13 +78,7 @@ sub __parseExecMap
 		#   a ready-made array (take as is)
 		#   a string with embedded \n (split on that)
 		#
-		my $cmdline = $cfg->{$cmdKey};
-		$cmdline =
-			(ref($cmdline) eq 'ARRAY')
-				? $cmdline
-				: ($cmdline =~ m#\n#)
-					? [ split("\n", $cmdline) ]
-					: [ split(' ', $cmdline) ];
+		my $cmdline = ensureArray($cfg->{$cmdKey});
 					
 		# now store the matcher and cmdline in an array so we can evaluate them
 		# in a defined order when we need to
@@ -97,6 +91,20 @@ sub __parseExecMap
 	die("No entries in the execmap\n") unless @matcherCmdlinePairs;
 
 	$self->{mcpairs} = \@matcherCmdlinePairs;
+
+	# finally check the config for unknown keys...
+	#
+	foreach my $key (sort(keys(%$cfg)))
+	{
+		if ($key =~ /^(match|cmd)(\d+)$/)
+		{
+			warn("Unmatched '$key' in section '[EXECMAP]'\n") if ($1 eq 'cmd' && !exists($cfg->{"match$2"})); 
+		}
+		else
+		{
+			warn("Unknown key '$key' in section '[EXECMAP]'\n");
+		}
+	}
 }
 
 sub __defaultCfg

@@ -3,7 +3,7 @@ package App::TestOnTap::Config;
 use strict;
 use warnings;
 
-use App::TestOnTap::Util qw(slashify);
+use App::TestOnTap::Util qw(slashify ensureArray);
 use App::TestOnTap::OrderStrategy;
 use App::TestOnTap::_dbgvars;
 
@@ -65,7 +65,7 @@ sub __readCfgFile
 	# a valid uuid is required
 	#
 	my $id = $blankSection->{id} || '';
-	die("Invalid suite id: '$id'") unless $id =~ /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+	die("Invalid/missing suite id: '$id'") unless $id =~ /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
 	$self->{id} = $id;
 	
 	# an optional filter to skip parts while scanning suite root
@@ -98,17 +98,11 @@ sub __readCfgFile
 	
 	# read the preprocess (optional) command
 	#
-	my $preprocesscmd = $blankSection->{preprocess};
-	if (defined($preprocesscmd))
-	{
-		$preprocesscmd =
-			(ref($preprocesscmd) eq 'ARRAY')
-				? $preprocesscmd
-				: ($preprocesscmd =~ m#\n#)
-					? [ split("\n", $preprocesscmd) ]
-					: [ split(' ', $preprocesscmd) ];
-	}
-	$self->{preprocesscmd} = $preprocesscmd;
+	$self->{preprocesscmd} = ensureArray($blankSection->{preprocess});
+	
+	# read the postprocess (optional) command
+	#
+	$self->{postprocesscmd} = ensureArray($blankSection->{postprocess});
 	
 	# set up the execmap, possibly as a delegate from a user defined one 
 	#
@@ -139,9 +133,40 @@ sub __readCfgFile
 				$value = join("\n", @$value) if ref($value) eq 'ARRAY';
 				$depRules{$depRuleName}->{$key} = Grep::Query->new($value);
 			}
+			
+			# check for unknown keys...
+			#
+			my %validSectionKeys = map { $_ => 1 } qw(match dependson);
+			foreach my $key (keys(%{$cfg->{$depRuleSectionName}}))
+			{
+				warn("Unknown key '$key' in section '[$depRuleSectionName]'\n") unless exists($validSectionKeys{$key});
+			}
 		}
 	}
 	$self->{deprules} = \%depRules;
+	
+	# finally check the config for unknown sections/keys...
+	#
+	my @validSections = (qr/^$/, qr/^DEPENDENCY\s/, qr/^EXECMAP$/);
+	foreach my $section (sort(keys(%$cfg)))
+	{
+		my $knownSection = 0;
+		foreach my $secToMatch (@validSections)
+		{
+			if ($section =~ /$secToMatch/)
+			{
+				$knownSection = 1;
+				last;
+			}
+		}
+		warn("Unknown section: '[$section]'\n") unless $knownSection;
+	}
+
+	my %validBlankSectionKeys = map { $_ => 1 } qw(id skip preprocess postprocess parallelizable order);
+	foreach my $key (sort(keys(%$blankSection)))
+	{
+		warn("Unknown key '$key' in default section\n") unless exists($validBlankSectionKeys{$key});
+	}
 }
 
 sub getName

@@ -120,7 +120,8 @@ sub __parseArgv
 
 	# simple copies
 	#
-	$self->{$_} = $rawOpts{$_} foreach (qw(v archive defines timer harness));
+	$self->{$_} = $rawOpts{$_} foreach (qw(v archive timer harness));
+	$self->{defines} = $rawOpts{define};
 
 	# help with the hidden flags...
 	#

@@ -208,6 +208,13 @@ sub getPreprocessCmd
 	return $self->{preprocesscmd};
 }
 
+sub getPostprocessCmd
+{
+	my $self = shift;
+	
+	return $self->{postprocesscmd};
+}
+
 sub hasParallelizableRule
 {
 	my $self = shift;

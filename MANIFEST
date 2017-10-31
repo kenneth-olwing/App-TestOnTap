@@ -118,6 +118,7 @@ lib/App/TestOnTap/ExecMap.pm
 lib/App/TestOnTap/Harness.pm
 lib/App/TestOnTap/OrderStrategy.pm
 lib/App/TestOnTap/Preprocess.pm
+lib/App/TestOnTap/Postprocess.pm
 lib/App/TestOnTap/Scheduler.pm
 lib/App/TestOnTap/Util.pm
 lib/App/TestOnTap/WorkDirManager.pm

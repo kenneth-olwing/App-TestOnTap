@@ -1,5 +1,12 @@
 Revision history for App-TestOnTap
 
+0.039	2017-11-01
+
+	Broken metadata (?)
+	
+	PAUSE claims failure on indexing; try again to drop away a few things that I'd
+	rather not have show up as bona fide modules (even if they are)...
+
 0.038	2017-11-01
 
 	Bug fixes and feature changes

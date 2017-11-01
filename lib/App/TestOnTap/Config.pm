@@ -5,6 +5,7 @@ use warnings;
 
 use App::TestOnTap::Util qw(slashify ensureArray);
 use App::TestOnTap::OrderStrategy;
+use App::TestOnTap::ExecMap;
 use App::TestOnTap::_dbgvars;
 
 use Config::Std;
@@ -106,11 +107,7 @@ sub __readCfgFile
 	
 	# set up the execmap, possibly as a delegate from a user defined one 
 	#
-	# a non-existing section will cause a default execmap
-	#
-	my $execMap = App::TestOnTap::ExecMap->new($cfg->{EXECMAP});
-	$execMap = App::TestOnTap::ExecMap->newFromFile($userExecMapFile, $execMap) if $userExecMapFile;
-	$self->{execmap} = $execMap; 
+	$self->{execmap} = App::TestOnTap::ExecMap->new($userExecMapFile, $cfg->{EXECMAP});
 
 	my %depRules;
 	if (!$App::TestOnTap::_dbgvars::IGNORE_DEPENDENCIES)

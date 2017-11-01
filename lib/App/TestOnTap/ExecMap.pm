@@ -14,39 +14,53 @@ use Sort::Naturally qw(nsort);
 sub new
 {
 	my $class = shift;
-	my $cfg = shift || __defaultCfg();
-	my $delegate = shift;
-
-	my $self = bless( { delegate => $delegate }, $class);
-	$self->__parseExecMap($cfg);
-	
-	return $self;
-}
-
-sub newFromFile
-{
-	my $class = shift;
 	my $fn = shift;
 	my $delegate = shift;
-	
-	# read in the file in Config::Std style
-	#
-	read_config($fn, my %cfg);
 
-	# this looks weird, I know - see https://rt.cpan.org/Public/Bug/Display.html?id=56862
-	#
-	# I seem to hit the problem with "Warning: Name "Config::Std::Hash::DEMOLISH" used only once..."
-	# when running a Par::Packer binary but not when as a 'normal' script.
-	#
-	# The below incantation seem to get rid of that, at least for now. Let's see if it reappears... 
-	#
-	my $dummy = *Config::Std::Hash::DEMOLISH;
-	$dummy = *Config::Std::Hash::DEMOLISH;
-	
-	my $section = $cfg{EXECMAP};
-	die("Missing EXECMAP section in '$fn'\n") unless $section;
+	my $execmapCfg;
+	if ($fn)
+	{
+		if ($fn eq ':internal')
+		{
+			$execmapCfg = __defaultCfg();
+		}
+		else
+		{
+			# read in the file in Config::Std style
+			#
+			read_config($fn, my %cfg);
+		
+			# this looks weird, I know - see https://rt.cpan.org/Public/Bug/Display.html?id=56862
+			#
+			# I seem to hit the problem with "Warning: Name "Config::Std::Hash::DEMOLISH" used only once..."
+			# when running a Par::Packer binary but not when as a 'normal' script.
+			#
+			# The below incantation seem to get rid of that, at least for now. Let's see if it reappears... 
+			#
+			my $dummy = *Config::Std::Hash::DEMOLISH;
+			$dummy = *Config::Std::Hash::DEMOLISH;
+			
+			$execmapCfg = $cfg{EXECMAP};
+			die("Missing EXECMAP section in '$fn'\n") unless $execmapCfg;
+		}
+	}
+	elsif (!$delegate)
+	{
+		die("No EXECMAP found - configure one or use '--execmap :internal' for default\n");
+	}
 
-	return $class->new($section, $delegate);
+	my $self = bless( {}, $class);
+	
+	if (!$execmapCfg)
+	{
+		$execmapCfg = $delegate;
+		$delegate = undef;
+	}
+	$self->{delegate} = $delegate ? $class->new(undef, $delegate) : undef;
+	
+	$self->__parseExecMap($execmapCfg);
+	
+	return $self;
 }
 
 sub __parseExecMap

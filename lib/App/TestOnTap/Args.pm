@@ -8,7 +8,6 @@ use strict;
 use warnings;
 
 use App::TestOnTap::Util qw(slashify expandAts $IS_WINDOWS $IS_PACKED $SHELL_ARG_DELIM);
-use App::TestOnTap::ExecMap;
 use App::TestOnTap::Config;
 use App::TestOnTap::Preprocess;
 use App::TestOnTap::WorkDirManager;

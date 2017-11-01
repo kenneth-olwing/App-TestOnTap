@@ -58,13 +58,30 @@ WriteMakefile(
 					no_index =>
 						{
 							directory => [ 'extras', 'author' ],
-						},
-					provides =>
-						{
-							'testontap' => { file => 'script/testontap' },
-							'App::TestOnTap' => { file => 'lib/App/TestOnTap.pm' },
-							'App::TestOnTap::Args' => { file => 'lib/App/TestOnTap/Args.pm' },
+							file =>
+								[
+									'App/TestOnTap/_Args.pm',
+									'App/TestOnTap/Config.pm',
+									'App/TestOnTap/Dispenser.pm',
+									'App/TestOnTap/ExecMap.pm',
+									'App/TestOnTap/Harness.pm',
+									'App/TestOnTap/OrderStrategy.pm',
+									'App/TestOnTap/PackInfo.pm',
+									'App/TestOnTap/Postprocess.pm',
+									'App/TestOnTap/Preprocess.pm',
+									'App/TestOnTap/Scheduler.pm',
+									'App/TestOnTap/Util.pm',
+									'App/TestOnTap/WorkDirManager.pm',
+									'App/TestOnTap/_dbgvars.pm',
+									'extras/Perl/KnownToFail/src/main/perl/Org/Cpan/Knth/TestMoreKTF.pm'
+								],
 						}
+#					provides =>
+#						{
+#							'testontap' => { file => 'script/testontap' },
+#							'App::TestOnTap' => { file => 'lib/App/TestOnTap.pm' },
+#							'App::TestOnTap::Args' => { file => 'lib/App/TestOnTap/Args.pm' },
+#						}
 				}
 			)
 		: (),

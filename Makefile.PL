@@ -58,6 +58,12 @@ WriteMakefile(
 					no_index =>
 						{
 							directory => [ 'extras', 'author' ],
+						},
+					provides =>
+						{
+							'testontap' => { file => 'script/testontap' },
+							'App::TestOnTap' => { file => 'lib/App/TestOnTap.pm' },
+							'App::TestOnTap::Args' => { file => 'lib/App/TestOnTap/Args.pm' },
 						}
 				}
 			)
@@ -71,8 +77,10 @@ WriteMakefile(
 				? ()
 				: ( %$configure_requires, %$test_requires ),
 			'Archive::Zip'						=>	1.47,	# 1.30 misbehaves in t\21-verify_saved_archive.t
+			'Config'							=>  0,
 			'Config::Std'						=>	0,		# initial dev used: 0.901
 			'Exporter'							=>	0,		# initial dev used: 5.72
+			'ExtUtils::Installed'				=>  0,
 			'File::Basename'					=>	0,		# initial dev used: 2.85
 			'File::Copy::Recursive'				=>	0,		# initial dev used: 0.38
 			'File::Find'						=>	0,		# initial dev used: 1.27

@@ -1,5 +1,10 @@
 Revision history for App-TestOnTap
 
+0.041	2017-11-02
+
+	Missing dependencies (PAR; PAR::Packer)
+	
+
 0.040	2017-11-02
 
 	Broken MANIFEST causing missing file!

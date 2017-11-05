@@ -119,11 +119,10 @@ lib/App/TestOnTap/Harness.pm
 lib/App/TestOnTap/OrderStrategy.pm
 lib/App/TestOnTap/PackInfo.pm
 lib/App/TestOnTap/Preprocess.pm
-lib/App/TestOnTap/Postprocess.pm
 lib/App/TestOnTap/Scheduler.pm
 lib/App/TestOnTap/Util.pm
 lib/App/TestOnTap/WorkDirManager.pm
-lib/App/TestOnTap/_Args.pod
+lib/App/TestOnTap/_Args._pod
 lib/App/TestOnTap/_dbgvars.pm
 script/testontap
 t/00-load.t

@@ -515,6 +515,8 @@ The test suite result tree in /tmp will look like this:
   -- meta.json
   -- summary.json
   -- testinfo.json
+  -- preprocess.txt
+  -- postprocess.txt
   -- private/
   -- -- ioperf.xml
   -- result/
@@ -728,6 +730,14 @@ Tests having TODO's.
 Tests with TODO's that unexpectedly passed.
 
 =back
+
+=item * preprocess.txt
+
+The text printed by a preprocess command, if any.
+
+=item * postprocess.txt
+
+The text printed by a postprocess command, if any.
 
 =item * private/
 

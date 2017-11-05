@@ -7,12 +7,13 @@ use lib "$Bin/lib";
 
 use TestUtils;
 
-use Test::More tests => 3;
+use Test::More tests => 4;
 
 my ($ret, $stdout, $stderr) = TestUtils::xeqsuite([qw(--verbose)]);
 
-is($ret, 1, "Exited with 1");
+isnt($ret, 0, "Exit code not 0");
 like($stderr->[0], qr/^WARNING: missing execmap, using internal!$/, "default execmap");
-like($stderr->[1], qr/^WARNING: Error 42 when running postprocess command: This is postprocess$/, "saw postproc warning");
+like($stderr->[1], qr/^This is postprocess$/, "postprocess output");
+like($stderr->[2], qr/^WARNING: exit code '42' when running postprocess command$/, "postproc exit code");
 
 done_testing();

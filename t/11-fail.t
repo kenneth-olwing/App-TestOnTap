@@ -7,12 +7,13 @@ use lib "$Bin/lib";
 
 use TestUtils;
 
-use Test::More tests => 6;
+use Test::More tests => 7;
 
-my ($ret, $stdout, $stderr) = TestUtils::xeqsuite([qw(--verbose --execmap :internal)]);
+my ($ret, $stdout, $stderr) = TestUtils::xeqsuite([qw(--verbose)]);
 
 is($ret, 1, "Exited with 1");
-like($stderr->[0], qr/^WARNING: No configuration file found, using blank with generated id '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'!$/, "Generated id");
+like($stderr->[0], qr/^WARNING: No id found, using generated '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'!$/, "Generated id");
+like($stderr->[1], qr/^WARNING: missing execmap, using internal!$/, "default execmap");
 
 # hedge our bets here, some recent change somewhere else I'm unable to track down
 # causes the line to be either 4 or 5...

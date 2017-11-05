@@ -1,4 +1,4 @@
-# App::TestOnTap 0.041
+# App::TestOnTap 0.042
 
 This module implements a "test driver", i.e. something that runs and controls
 test executables, specifically processes that provides TAP output.

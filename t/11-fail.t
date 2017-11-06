@@ -18,8 +18,7 @@ like($stderr->[1], qr/^WARNING: missing execmap, using internal!$/, "default exe
 # hedge our bets here, some recent change somewhere else I'm unable to track down
 # causes the line to be either 4 or 5...
 #
-my $atLeastOneRx = qr/^At least 1 test\(s\) failed!$/;
-my $atLeastOneFail = ($stderr->[4] =~ /$atLeastOneRx/ || $stderr->[5] =~ /$atLeastOneRx/) ? 1 : 0;   
+my $atLeastOneFail = grep(/^At least 1 test\(s\) failed!$/, @$stderr) ? 1 : 0;
 ok($atLeastOneFail, "Expected failure");
 
 like($stdout->[3], qr/^not ok 2 - Won't work\.\.\.$/, "Fail in 2");

@@ -1,5 +1,11 @@
 Revision history for App-TestOnTap
 
+0.043	2017-11-06
+
+	Failure in automated smoke tests
+	
+	But without verbosity, hard to figure out - simplified
+
 0.042	2017-11-05
 
 	Changes to how config works

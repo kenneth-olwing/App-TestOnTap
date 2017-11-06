@@ -20,7 +20,7 @@ my ($ret, $stdout, $stderr) = TestUtils::xeqsuite(['--verbose', '--savedirectory
 
 is($ret, 0, "Exited with 0");
 like($stderr->[0], qr/^WARNING: No id found, using generated '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'!$/, "Generated id");
-like($stderr->[1], qr/^WARNING: missing execmap, using internal!$/, "default execmap");
+like($stderr->[1], qr/^WARNING: No execmap found, using internal default!$/, "default execmap");
 like($stdout->[14], qr/^Files=1, Tests=10, /, "Only one file with 10 tests found");
 is($stdout->[15], "Result: PASS", "Passed");
 like($stdout->[16], qr(^Result saved to '\Q$tmpdir\E[\\/]\Q$suitename\E\.\d{8}T\d{6}Z\.[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'$), "Saved to directory");

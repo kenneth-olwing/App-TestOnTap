@@ -14,7 +14,7 @@ use Test::More tests => 14;
 my ($ret, $stdout, $stderr) = TestUtils::xeqsuite([qw(--verbose --order natural)]);
 
 is($ret, 0, "Exited with 0");
-like($stderr->[0], qr/^WARNING: missing execmap, using internal!$/, "default execmap");
+like($stderr->[0], qr/^WARNING: No execmap found, using internal default!$/, "default execmap");
 like($stdout->[0], qr/^t3\.pl /, "t3 first");
 like($stdout->[4], qr/^t2\.pl /, "t2 in the middle");
 like($stdout->[8], qr/^t1\.pl /, "t1 last");
@@ -25,7 +25,7 @@ $App::TestOnTap::_dbgvars::IGNORE_DEPENDENCIES = 1;
 ($ret, $stdout, $stderr) = TestUtils::xeqsuite([qw(--verbose --order natural)]);
 
 is($ret, 0, "Exited with 0");
-like($stderr->[0], qr/^WARNING: missing execmap, using internal!$/, "default execmap");
+like($stderr->[0], qr/^WARNING: No execmap found, using internal default!$/, "default execmap");
 like($stdout->[0], qr/^t1\.pl /, "t1 first");
 like($stdout->[4], qr/^t2\.pl /, "t2 in the middle");
 like($stdout->[8], qr/^t3\.pl /, "t3 last");

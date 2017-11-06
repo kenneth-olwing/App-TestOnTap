@@ -41,7 +41,7 @@ sub new
 	{
 		if (!$delegate)
 		{
-			warn("WARNING: missing execmap, using internal!\n");
+			warn("WARNING: No execmap found, using internal default!\n");
 			$execmapCfg = __defaultCfg();
 		}
 	}

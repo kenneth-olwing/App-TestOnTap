@@ -13,7 +13,7 @@ my ($ret, $stdout, $stderr) = TestUtils::xeqsuite([qw(--verbose)]);
 
 is($ret, 0, "Exited with 0");
 like($stderr->[0], qr/^WARNING: No id found, using generated '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'!$/, "Generated id");
-like($stderr->[1], qr/^WARNING: missing execmap, using internal!$/, "default execmap");
+like($stderr->[1], qr/^WARNING: No execmap found, using internal default!$/, "default execmap");
 like($stdout->[13], qr/^Files=3, Tests=3, /, "All three found");
 is($stdout->[14], "Result: PASS", "Passed");
 
@@ -21,7 +21,7 @@ is($stdout->[14], "Result: PASS", "Passed");
 
 is($ret, 0, "Exited with 0");
 like($stderr->[0], qr/^WARNING: No id found, using generated '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'!$/, "Generated id");
-like($stderr->[1], qr/^WARNING: missing execmap, using internal!$/, "default execmap");
+like($stderr->[1], qr/^WARNING: No execmap found, using internal default!$/, "default execmap");
 like($stderr->[2], qr/^WARNING: No 'parallelizable' rule found \('--jobs 2' has no effect\); all tests will run serially!$/, "Not parallelizable");
 like($stdout->[13], qr/^Files=3, Tests=3, /, "All three found");
 is($stdout->[14], "Result: PASS", "Passed");
@@ -30,7 +30,7 @@ is($stdout->[14], "Result: PASS", "Passed");
 
 is($ret, 0, "Exited with 0");
 like($stderr->[0], qr/^WARNING: No id found, using generated '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'!$/, "Generated id");
-like($stderr->[1], qr/^WARNING: missing execmap, using internal!$/, "default execmap");
+like($stderr->[1], qr/^WARNING: No execmap found, using internal default!$/, "default execmap");
 like($stdout->[5], qr/^Files=1, Tests=1, /, "Only one found");
 is($stdout->[6], "Result: PASS", "Passed");
 
@@ -38,7 +38,7 @@ is($stdout->[6], "Result: PASS", "Passed");
 
 is($ret, 0, "Exited with 0");
 like($stderr->[0], qr/^WARNING: No id found, using generated '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'!$/, "Generated id");
-like($stderr->[1], qr/^WARNING: missing execmap, using internal!$/, "default execmap");
+like($stderr->[1], qr/^WARNING: No execmap found, using internal default!$/, "default execmap");
 like($stdout->[5], qr/^Files=1, Tests=1, /, "Only one found");
 is($stdout->[6], "Result: PASS", "Passed");
 

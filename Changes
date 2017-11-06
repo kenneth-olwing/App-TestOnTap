@@ -1,5 +1,9 @@
 Revision history for App-TestOnTap
 
+0.044	2017-11-06
+
+	Clean up warn message
+
 0.043	2017-11-06
 
 	Failure in automated smoke tests

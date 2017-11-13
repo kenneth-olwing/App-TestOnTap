@@ -6,9 +6,9 @@ use warnings;
 use App::TestOnTap::Util qw(slashify ensureArray);
 use App::TestOnTap::OrderStrategy;
 use App::TestOnTap::ExecMap;
-use App::TestOnTap::_dbgvars;
 
 use Config::Std;
+use File::Spec;
 use Grep::Query;
 use UUID::Tiny qw(:std);
 
@@ -17,13 +17,15 @@ use UUID::Tiny qw(:std);
 sub new
 {
 	my $class = shift;
-	my $path = shift;
-	my $userExecMapFile = shift;
+	my $suiteRoot = shift;
+	my $userCfgFile = shift;
+	my $ignoreDeps = shift;
 
-	my $configFilePath = -f $path ? $path : slashify("$path/" . getName());
-	
+	my $configFile = slashify(File::Spec->rel2abs($userCfgFile || "$suiteRoot/" . getName()));
+	die("Missing configuration file '$configFile'\n") unless -f $configFile;
+
 	my $self = bless({}, $class);
-	$self->__readCfgFile($configFilePath, $userExecMapFile);
+	$self->__readCfgFile($configFile, $ignoreDeps);
 
 	return $self;
 }
@@ -34,27 +36,20 @@ sub new
 sub __readCfgFile
 {
 	my $self = shift;
-	my $configFilePath = $App::TestOnTap::_dbgvars::FORCED_CONFIG_FILE || shift;
-	my $userExecMapFile = shift;
+	my $configFile = shift;
+	my $ignoreDeps = shift;
 	
-	my $cfg;
+	read_config($configFile, my $cfg);
 	
-	if (!$App::TestOnTap::_dbgvars::IGNORE_CONFIG_FILE)
-	{
-		die("Missing configuration '$configFilePath'\n") unless -e $configFilePath;
-		
-		read_config($configFilePath, $cfg);
-		
-		# this looks weird, I know - see https://rt.cpan.org/Public/Bug/Display.html?id=56862
-		#
-		# I seem to hit the problem with "Warning: Name "Config::Std::Hash::DEMOLISH" used only once..."
-		# when running a Par::Packer binary but not when as a 'normal' script.
-		#
-		# The below incantation seem to get rid of that, at least for now. Let's see if it reappears... 
-		#
-		my $dummy = *Config::Std::Hash::DEMOLISH;
-		$dummy = *Config::Std::Hash::DEMOLISH;
-	}
+	# this looks weird, I know - see https://rt.cpan.org/Public/Bug/Display.html?id=56862
+	#
+	# I seem to hit the problem with "Warning: Name "Config::Std::Hash::DEMOLISH" used only once..."
+	# when running a Par::Packer binary but not when as a 'normal' script.
+	#
+	# The below incantation seem to get rid of that, at least for now. Let's see if it reappears... 
+	#
+	my $dummy = *Config::Std::Hash::DEMOLISH;
+	$dummy = *Config::Std::Hash::DEMOLISH;
 	
 	# pick the necessities from the blank section
 	#
@@ -110,10 +105,10 @@ sub __readCfgFile
 	
 	# set up the execmap, possibly as a delegate from a user defined one 
 	#
-	$self->{execmap} = App::TestOnTap::ExecMap->new($userExecMapFile, $cfg->{EXECMAP});
+	$self->{execmap} = App::TestOnTap::ExecMap->new(undef, $cfg->{EXECMAP});
 
 	my %depRules;
-	if (!$App::TestOnTap::_dbgvars::IGNORE_DEPENDENCIES)
+	if (!$ignoreDeps)
 	{
 		# find all dependency sections
 		#
@@ -169,13 +164,6 @@ sub __readCfgFile
 	}
 }
 
-sub getName
-{
-	# works as both class/instance/sub...
-	#
-	return $App::TestOnTap::_dbgvars::CONFIG_FILE_NAME;
-}
-
 sub getId
 {
 	my $self = shift;
@@ -192,6 +180,13 @@ sub skip
 		$self->{skip}
 			? $self->{skip}->qgrep($test)
 			: 0;
+}
+
+sub getName
+{
+       # works as both class/instance/sub...
+       #
+       return 'config.testontap';
 }
 
 sub getOrderStrategy

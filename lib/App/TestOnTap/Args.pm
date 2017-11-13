@@ -260,7 +260,7 @@ sub __parseArgv
 	#
 	eval
 	{
-		$self->{workdirmgr} = App::TestOnTap::WorkDirManager->new($rawOpts{workdirectory}, $self->{suiteroot});
+		$self->{workdirmgr} = App::TestOnTap::WorkDirManager->new($self, $rawOpts{workdirectory}, $self->{suiteroot});
 	};
 	if ($@)
 	{

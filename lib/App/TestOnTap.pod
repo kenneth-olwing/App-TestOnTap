@@ -661,6 +661,10 @@ This holds various information about tests found and acted upon.
 
 =item * commandlines (key/value pairs)
 
+A hash representation of the configuration used for the suite.
+
+=item * commandlines (key/value pairs)
+
 Test names as keys with values being the command line used to run them.
 
 =item * dispensedorder (list of strings)

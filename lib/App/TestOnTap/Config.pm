@@ -162,6 +162,8 @@ sub __readCfgFile
 	{
 		warn("Unknown key '$key' in default section\n") unless exists($validBlankSectionKeys{$key});
 	}
+	
+	$self->{rawcfg} = { %$cfg };
 }
 
 sub getId
@@ -242,6 +244,13 @@ sub getExecMapping
 	my $testName = shift;
 
 	return $self->{execmap}->getMapping($testName);	
+}
+
+sub getRawCfg
+{
+	my $self = shift;
+
+	return $self->{rawcfg};	
 }
 
 sub getDependencyRuleNames

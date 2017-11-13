@@ -49,7 +49,7 @@ Will attempt to generate a binary using the 'pp' command from PAR::Packer.
 The first form will generate a default name for the binary (use C<--_info_ppname> to see this),
 and the second form makes it possible to use an arbitrary name and path.
 
-An existing file will not be ovrwritten.
+An existing file will not be overwritten.
 
 By using the C<--verbose> flag, pp verbosity can be raised.
 

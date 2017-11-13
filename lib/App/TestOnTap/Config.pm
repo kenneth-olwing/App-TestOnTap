@@ -105,7 +105,7 @@ sub __readCfgFile
 	
 	# set up the execmap, possibly as a delegate from a user defined one 
 	#
-	$self->{execmap} = App::TestOnTap::ExecMap->new(undef, $cfg->{EXECMAP});
+	$self->{execmap} = App::TestOnTap::ExecMap->new($cfg);
 
 	my %depRules;
 	if (!$ignoreDeps)
@@ -134,7 +134,7 @@ sub __readCfgFile
 			my %validSectionKeys = map { $_ => 1 } qw(match dependson);
 			foreach my $key (keys(%{$cfg->{$depRuleSectionName}}))
 			{
-				warn("Unknown key '$key' in section '[$depRuleSectionName]'\n") unless exists($validSectionKeys{$key});
+				warn("WARNING: Unknown key '$key' in section '[$depRuleSectionName]'\n") unless exists($validSectionKeys{$key});
 			}
 		}
 	}
@@ -142,7 +142,7 @@ sub __readCfgFile
 	
 	# finally check the config for unknown sections/keys...
 	#
-	my @validSections = (qr/^$/, qr/^DEPENDENCY\s/, qr/^EXECMAP$/);
+	my @validSections = (qr/^$/, qr/^DEPENDENCY\s/, qr/^EXECMAP\s+[^\s]+\s*$/);
 	foreach my $section (sort(keys(%$cfg)))
 	{
 		my $knownSection = 0;
@@ -154,13 +154,13 @@ sub __readCfgFile
 				last;
 			}
 		}
-		warn("Unknown section: '[$section]'\n") unless $knownSection;
+		warn("WARNING: Unknown section: '[$section]'\n") unless $knownSection;
 	}
 
-	my %validBlankSectionKeys = map { $_ => 1 } qw(id skip preprocess postprocess parallelizable order);
+	my %validBlankSectionKeys = map { $_ => 1 } qw(id skip preprocess postprocess parallelizable order execmap);
 	foreach my $key (sort(keys(%$blankSection)))
 	{
-		warn("Unknown key '$key' in default section\n") unless exists($validBlankSectionKeys{$key});
+		warn("WARNING: Unknown key '$key' in default section\n") unless exists($validBlankSectionKeys{$key});
 	}
 	
 	$self->{rawcfg} = { %$cfg };

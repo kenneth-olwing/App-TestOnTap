@@ -1,5 +1,9 @@
 Revision history for App-TestOnTap
 
+0.046	2017-11-14
+
+	Removed module remained in personal Perl...
+
 0.045	2017-11-13
 
 	Non-backward compat changes

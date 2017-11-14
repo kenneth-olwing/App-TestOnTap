@@ -42,7 +42,7 @@ not ready for prime time...
 
 Displays usage and help with options/arguments. If given, nothing else will be done.
 
-=item B<--_pp> or B<--_pp_file E<lt>fileE<gt>>
+=item B<--_pp> or B<--_pp_path E<lt>pathE<gt>>
 
 Will attempt to generate a binary using the 'pp' command from PAR::Packer.
 

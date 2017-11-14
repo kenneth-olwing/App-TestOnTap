@@ -5,8 +5,6 @@ use FindBin qw($Bin);
 
 use lib "$Bin/lib";
 
-use App::TestOnTap::_dbgvars;
-
 use TestUtils;
 
 use Test::More tests => 7;

@@ -9,7 +9,6 @@ use File::Slurp qw(write_file);
 use File::Spec;
 use File::Temp qw(tempfile);
 use FindBin qw($RealBin $Script);
-use PAR;
 use POSIX;
 
 sub handle
@@ -22,7 +21,13 @@ sub handle
 	my $argsPodInput = shift;
 	my $manualPodName = shift;
 	my $manualPodInput = shift;
-	
+
+	foreach my $req (qw(PAR PAR::Packer))
+	{
+		eval "require $req";
+		warn("Sorry, it appears $req is not installed/working!\n") if $@;
+	}
+
 	die("Only one of --_pp, --_pp_path, --_info, --_info_ppcmd, --_info_ppname, --_info_config, --_info_modules allowed\n") if grep(/^_(pp|info)$/, keys(%$opts)) > 1;
 	if    ($opts->{_pp})           { _pp(undef, $opts, $version, $_argsPodName, $_argsPodInput, $argsPodName, $argsPodInput, $manualPodName, $manualPodInput); }
 	elsif ($opts->{_pp_path})      { _pp($opts->{_pp_path}, $opts, $version, $_argsPodName, $_argsPodInput, $argsPodName, $argsPodInput, $manualPodName, $manualPodInput); }
@@ -50,9 +55,6 @@ sub _pp
 
 	die("Sorry, you're already running a binary/packed instance\n") if $IS_PACKED;
 	
-	eval "require PAR::Packer";
-	warn("Sorry, it appears PAR::Packer is not installed/working!\n") if $@;
-
 	my $output = $ppout || __construct_output($version);
 	my $outputDir = dirname($output);
 	die("The output directory doesn't exist: '$outputDir'\n") unless -d $outputDir;

@@ -1,14 +1,14 @@
 package App::TestOnTap::PackInfo;
 
-use App::TestOnTap::Util qw(slashify $IS_WINDOWS $IS_PACKED $SHELL_ARG_DELIM);
+use App::TestOnTap::Util qw(slashify $IS_WINDOWS $IS_PACKED $SHELL_ARG_DELIM $FILE_SEP);
 
 use Config qw(myconfig);
 use ExtUtils::Installed;
 use File::Basename;
 use File::Slurp qw(write_file);
 use File::Spec;
-use File::Temp qw(tempfile);
-use FindBin qw($RealBin $Script);
+use File::Temp qw(tempfile tempdir);
+use FindBin qw($RealBin $RealScript);
 use POSIX;
 
 sub handle
@@ -25,23 +25,38 @@ sub handle
 	foreach my $req (qw(PAR PAR::Packer))
 	{
 		eval "require $req";
-		warn("Sorry, it appears $req is not installed/working!\n") if $@;
+		warn("WARNING: it appears $req is not installed/working!\n") if $@;
 	}
 
 	die("Only one of --_pp, --_pp_path, --_info, --_info_ppcmd, --_info_ppname, --_info_config, --_info_modules allowed\n") if grep(/^_(pp|info)$/, keys(%$opts)) > 1;
-	if    ($opts->{_pp})           { _pp(undef, $opts, $version, $_argsPodName, $_argsPodInput, $argsPodName, $argsPodInput, $manualPodName, $manualPodInput); }
-	elsif ($opts->{_pp_path})      { _pp($opts->{_pp_path}, $opts, $version, $_argsPodName, $_argsPodInput, $argsPodName, $argsPodInput, $manualPodName, $manualPodInput); }
-	elsif ($opts->{_info})         { _info($opts, $_argsPodName, $_argsPodInput, $argsPodName, $argsPodInput, $manualPodName, $manualPodInput); }
-	elsif ($opts->{_info_ppcmd})   { _info_ppcmd($opts, $_argsPodName, $_argsPodInput, $argsPodName, $argsPodInput, $manualPodName, $manualPodInput); }
-	elsif ($opts->{_info_ppname})  { _info_ppname($version); }
-	elsif ($opts->{_info_config})  { _info_config(); }
-	elsif ($opts->{_info_modules}) { _info_modules(); }
+	if    ($opts->{_pp})           { _pp($opts, $version, $_argsPodName, $_argsPodInput, $argsPodName, $argsPodInput, $manualPodName, $manualPodInput); }
+	elsif ($opts->{_pp_script})    { _pp_script($opts, $version, $_argsPodName, $_argsPodInput, $argsPodName, $argsPodInput, $manualPodName, $manualPodInput); }
+#	elsif ($opts->{_pp_path})      { _pp($opts->{_pp_path}, $opts, $version, $_argsPodName, $_argsPodInput, $argsPodName, $argsPodInput, $manualPodName, $manualPodInput); }
+#	elsif ($opts->{_info})         { _info($opts, $_argsPodName, $_argsPodInput, $argsPodName, $argsPodInput, $manualPodName, $manualPodInput); }
+#	elsif ($opts->{_info_ppcmd})   { _info_ppcmd($opts, $_argsPodName, $_argsPodInput, $argsPodName, $argsPodInput, $manualPodName, $manualPodInput); }
+#	elsif ($opts->{_info_ppname})  { _info_ppname($version); }
+#	elsif ($opts->{_info_config})  { _info_config(); }
+#	elsif ($opts->{_info_modules}) { _info_modules(); }
 	else { die("INTERNAL ERROR"); }
 		
 	exit(0);
 }
 
+sub _pp_script
+{
+	my $scriptFile = __internal_pp_script(@_);
+	print "Wrote script '$scriptFile'\n";
+}
+
 sub _pp
+{
+	my $tmpDir = tempdir('testontap_ppscript_XXXX', TMPDIR => 1, CLEANUP => 1);
+	$_[0]->{_pp_script} = "$tmpDir/testontap_pp.pl";
+	my $scriptFile = __internal_pp_script(@_);
+	system("perl $SHELL_ARG_DELIM$scriptFile$SHELL_ARG_DELIM");
+}
+
+sub _pp_old
 {
 	my $ppout = shift;
 	my $opts = shift;
@@ -145,6 +160,145 @@ sub _info_modules
 
 ###
 
+sub __internal_pp_script
+{
+	my $opts = shift;
+	my $version = shift;
+	my $_argsPodName = shift;
+	my $_argsPodInput = slashify(File::Spec->rel2abs(shift), '/');
+	my $argsPodName = shift;
+	my $argsPodInput = slashify(File::Spec->rel2abs(shift), '/');
+	my $manualPodName = shift;
+	my $manualPodInput = slashify(File::Spec->rel2abs(shift), '/');
+
+	die("Sorry, you're already running a binary/packed instance\n") if $IS_PACKED;
+	
+	my $scriptFile = slashify(File::Spec->rel2abs($opts->{_pp_script}));
+	die("The path '$scriptFile' already exists\n") if -e $scriptFile;
+	
+	my $x_input = slashify("$RealBin/$RealScript", '/');
+	my $x_output = __construct_outfilename($version);
+	my $x_verbose = $opts->{verbose} ? 1 : 0;
+	my $x_fsep = $FILE_SEP;
+	$x_fsep .= "\\" if $x_fsep eq "\\";
+	
+	my $script = <<SCRIPT;
+use strict;
+use warnings;
+
+use Config qw(myconfig);
+use ExtUtils::Installed;
+use File::Basename;
+use File::Slurp qw(write_file);
+use File::Spec;
+use File::Temp qw(tempfile);
+use Getopt::Long;
+
+eval "require PAR::Packer";
+die("Sorry, PAR:Packer is not installed/working!\\n") if \$@;
+
+my \$outfile = '$x_output';
+my \$verbose = $x_verbose;
+GetOptions('outfile=s' => \\\$outfile, 'verbose!' => \\\$verbose) || usage(); 
+
+my \$outdir = dirname(\$outfile);
+die("The output directory doesn't exist: '\$outdir'\\n") unless -d \$outdir;
+die("The outfile exists: '\$outfile'\\n") if -e \$outfile;
+
+my (undef, \$configFile) = tempfile('testontap_config_XXXX', TMPDIR => 1, UNLINK => 1);
+write_file(\$configFile, myconfig()) || die("Failed to write '\$configFile': \$!\\n");
+ 
+my (undef, \$modulesFile) = tempfile('testontap_modules_XXXX', TMPDIR => 1, UNLINK => 1);
+write_file(\$modulesFile, find_modules()) || die("Failed to write '\$modulesFile': $!\\n");
+
+my (undef, \$cmdFile) = tempfile('testontap_cmd_XXXX', TMPDIR => 1, UNLINK => 1);
+
+my \@liblocs = map { (\$_ ne '.' && !ref(\$_)) ? ('-I', slashify(File::Spec->rel2abs(\$_))) : () } \@INC;
+my \@cmd =
+	(
+		'pp',
+		\$verbose ? ("--verbose=\$verbose") : (),
+		\@liblocs,
+		'-a', "$_argsPodInput;lib/$_argsPodName",
+		'-a', "$argsPodInput;lib/$argsPodName",
+		'-a', "$manualPodInput;lib/$manualPodName",
+		'-a', "\$cmdFile;TESTONTAP_CMD_FILE",
+		'-a', "\$configFile;TESTONTAP_CONFIG_FILE",
+		'-a', "\$modulesFile;TESTONTAP_MODULES_FILE",
+		'-M', 'Encode::*',
+		'-o', \$outfile,
+		'$x_input'
+	);
+
+my \@cmdCopy = \@cmd;
+\$_ .= "\\n" foreach (\@cmdCopy);
+write_file(\$cmdFile, { binmode => ':raw' }, \@cmdCopy) || die("Failed to write '\$cmdFile': \$!\\n");
+
+if (\$verbose)
+{
+	print "Packing to '\$outfile' using:\\n";
+	print "  \$_\\n" foreach (\@cmd);
+}
+else
+{
+	print "Packing to '\$outfile'...";
+}
+
+my \$xit = system(\@cmd) >> 8;
+die("\\nError during packing: \$xit\\n") if \$xit;
+print "done\\n";
+
+exit(0);
+
+###
+
+sub find_modules
+{
+	my \$ei = ExtUtils::Installed->new(skip_cwd => 1);
+
+	my \$modules = '';
+	foreach my \$module (sort(\$ei->modules()))
+	{
+		my \$ver = \$ei->version(\$module);
+		\$modules .= "\$module => \$ver\\n";
+	}
+		
+	return \$modules;
+}
+
+sub slashify
+{
+	my \$s = shift;
+	my \$fsep = shift || '$x_fsep';
+
+	my \$dblStart = \$s =~ s#^[\\/]{2}##;
+	\$s =~ s#[/\\]+#\$fsep#g;
+
+	return \$dblStart ? "\$fsep\$fsep\$s" : \$s;
+}
+
+sub usage
+{
+	print <<USAGE;
+Usage: \$0
+          [--output <path/file>]
+          [--verbose || --no-verbose];
+
+Creates a testontap binary with a default name of '$x_output'.
+Use '--output' to change.
+
+Use '--verbose' or '--no-verbose' to turn on/off verboseness.
+Defaults to verboseness when script was created (currently '$x_verbose'). 
+USAGE
+	exit(42);
+}
+SCRIPT
+
+	write_file($scriptFile, $script) || die("Failed to write '$scriptFile': $!\n");
+	
+	return $scriptFile;
+}
+
 sub __find_ppcmd
 {
 	my $opts = shift;
@@ -227,14 +381,14 @@ sub __find_modules
 	return $modules;
 }
 
-sub __construct_output
+sub __construct_outfilename
 {
 	my $version = shift;
 	
 	my $os = $IS_WINDOWS ? 'windows' : $^O;
 	my $arch = (POSIX::uname())[4];
 	my $exeSuffix = $IS_WINDOWS ? '.exe' : '';
-	my $bnScript = basename($Script);
+	my $bnScript = basename($RealScript);
 	
 	return "$bnScript-$version-$os-$arch$exeSuffix";
 }

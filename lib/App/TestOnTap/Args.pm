@@ -99,6 +99,7 @@ sub __parseArgv
 			#
 			'_help',
 			'_pp',
+			'_pp_script=s',
 			'_pp_path=s',
 			'_info',
 			'_info_ppcmd',

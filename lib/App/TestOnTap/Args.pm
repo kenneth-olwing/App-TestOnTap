@@ -433,7 +433,10 @@ sub __findSuiteRoot
 		}
 		
 		print "Attempting to unpack '$zipfile'...\n" if $self->{v};
+		my $zipErr;
+		Archive::Zip::setErrorHandler(sub { $zipErr = $_[0]; chomp($zipErr) });
 		my $zip = Archive::Zip->new($zipfile);
+		die("Error when unpacking '$zipfile': $zipErr\n") if $zipErr;
 		my @memberNames = $zip->memberNames();
 		die("The zip archive '$suiteroot' is empty\n") unless @memberNames;
 		my @rootEntries = grep(m#^[^/]+/?$#, @memberNames);

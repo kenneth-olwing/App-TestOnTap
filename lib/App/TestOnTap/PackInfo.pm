@@ -91,11 +91,18 @@ sub __internal_pp_script
 	die("The path '$scriptFile' already exists\n") if -e $scriptFile;
 	
 	my $x_input = slashify("$RealBin/$RealScript", '/');
-	my $x_input_lib = slashify("$RealBin/../lib", '/');
 	my $x_output = __construct_outfilename($version);
 	my $x_verbose = $opts->{verbose} ? 1 : 0;
 	my $x_fsep = $FILE_SEP;
 	$x_fsep .= "\\" if $x_fsep eq "\\";
+
+	my $x_liblocs = "my \@liblocs;\n";
+	foreach my $libloc (@INC)
+	{
+		next if ($libloc eq '.' || ref($libloc));
+		$x_liblocs .= "push(\@liblocs, '-I', '" . slashify(File::Spec->rel2abs($libloc), '/') . "');\n";
+	}
+	chomp($x_liblocs);
 	
 	my $script = <<SCRIPT;
 use strict;
@@ -138,12 +145,14 @@ write_file(\$modulesFile, find_modules()) || die("Failed to write '\$modulesFile
 
 print "Getting cmd...\\n" if \$verbose;
 my (undef, \$cmdFile) = tempfile('testontap_cmd_XXXX', TMPDIR => 1, UNLINK => 1);
-my \@liblocs = map { (\$_ ne '.' && !ref(\$_)) ? ('-I', slashify(File::Spec->rel2abs(\$_))) : () } \@INC;
+
+$x_liblocs
+\$_ = slashify(\$_) foreach (\@liblocs);
+
 my \@cmd =
 	(
 		'pp',
 		\$verbose ? ("--verbose=\$verbose") : (),
-		'-I', slashify(File::Spec->rel2abs('$x_input_lib')),
 		\@liblocs,
 		'-a', "\$_argsPodInput;lib/$_argsPodName",
 		'-a', "\$argsPodInput;lib/$argsPodName",

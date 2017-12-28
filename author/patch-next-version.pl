@@ -32,7 +32,7 @@ foreach my $fn (keys(%files))
 my @status = qx(git status --porcelain --ignored 2>&1);
 @status = grep(!m#^!! tmp/$#, @status); 
 die("Tree not clean:\n@status") if (@status || $?);
-die;
+
 # find the current branch:
 #
 my @br = qx(git symbolic-ref --short HEAD 2>&1);

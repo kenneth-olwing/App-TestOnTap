@@ -1,5 +1,9 @@
 Revision history for App-TestOnTap
 
+0.052	2018-12-19
+
+	Need a minimum version on List::MoreUtils
+
 0.051	2018-12-19
 
 	Improve parallelization configurability

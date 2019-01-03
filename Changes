@@ -1,5 +1,10 @@
 Revision history for App-TestOnTap
 
+0.053	2019-01-03
+
+	Added option --dryrun and improved output during --no-harness/--dryrun
+	Only warn (don't die!) about 'meaningless' match/dependson queries
+
 0.052	2018-12-19
 
 	Need a minimum version on List::MoreUtils

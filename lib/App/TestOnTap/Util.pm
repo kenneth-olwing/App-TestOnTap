@@ -3,7 +3,8 @@ package App::TestOnTap::Util;
 use strict;
 use warnings;
 
-use POSIX qw(strftime getcwd);
+use Cwd;
+use POSIX qw(strftime);
 use File::Basename;
 use File::Spec;
 

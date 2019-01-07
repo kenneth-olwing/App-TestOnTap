@@ -3,6 +3,7 @@ use warnings;
 
 print "Gibberish stdout\n";
 print STDERR "Gibberish stderr\n";
+print "fee fire foo\n";
 
 my $now = $ARGV[0];
 $ENV{"TESTONTAP_PREPROCESS_TEST_$now"} = 1;

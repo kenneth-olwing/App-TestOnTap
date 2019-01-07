@@ -1,5 +1,13 @@
 Revision history for App-TestOnTap
 
+0.058	2019-01-07
+
+	title
+	
+	Debugging of weird test failures in travis
+	*do not use as release*
+	
+
 0.057	2019-01-07
 
 	Debugging of weird test failures in travis

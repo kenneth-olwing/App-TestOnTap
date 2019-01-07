@@ -50,7 +50,7 @@ sub __execPreprocess
 							my $l = shift;
 							chomp($l);
 							$l =~ s/^\s+|\s+$//g;
-							push(@preproc, $l) if ($l && $l !~ /^\s*##/);
+							push(@preproc, $l) if $l;
 						},
 					$args->getSuiteRoot(),
 					(

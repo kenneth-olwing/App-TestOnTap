@@ -12,3 +12,6 @@ perl:
   - '5.10'
 env:
   - APP_TESTONTAP_SKIP_TEST_60=1
+os:
+  - linux
+  - osx

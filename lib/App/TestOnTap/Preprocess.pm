@@ -42,15 +42,6 @@ sub __execPreprocess
 	my $cmd = shift;
 	my $args = shift;
 
-	runprocess
-		(
-			sub {},
-			$args->getSuiteRoot(),
-			(
-				@$cmd,
-				@{$self->getArgv()}
-			)
-		);	 
 	my @preproc;	
 	my $xit = runprocess
 				(
@@ -81,13 +72,15 @@ sub __execPreprocess
 	chomp(@preproc);
 	while (my $line = shift(@preproc))
 	{
+		$line =~ s/^\s+|\s+$//g;
+		next unless $line;
 		if ($line =~ /^\s*#\s*BEGIN\s+([^\s]+)\s*$/ && exists($types{$1}))
 		{
 			$types{$1}->($1, \@preproc);
 		}
 		else
 		{
-			warn("WARNING: Unexpected line during preprocessing: '$line'\n");
+			warn("WARNING: Unexpected line during preprocessing: '$line'\n") unless $line =~ /^\s*#/;
 		}
 	}
 }

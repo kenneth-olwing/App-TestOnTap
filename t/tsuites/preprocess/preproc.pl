@@ -4,6 +4,11 @@ use warnings;
 print "Gibberish stdout\n";
 print STDERR "Gibberish stderr\n";
 
+print "# ARGV\n";
+print "#   $_\n" foreach (@ARGV);
+print "# ENV\n";
+print "#   $_=$ENV{$_}\n" foreach (sort(keys(%ENV)));
+
 my $now = $ARGV[0];
 $ENV{"TESTONTAP_PREPROCESS_TEST_$now"} = 1;
 print "# BEGIN ENV\n";

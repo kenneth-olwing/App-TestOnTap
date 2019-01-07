@@ -13,8 +13,4 @@ perl:
 env:
   - APP_TESTONTAP_SKIP_TEST_60=1
 os:
-  - osx
-addons:
-  homebrew:
-    packages:
-      - cpanminus
+  - windows

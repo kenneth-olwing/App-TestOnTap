@@ -11,7 +11,7 @@ use warnings;
 sub new
 {
 	my $class = shift;
-	my $cmd = shift; 
+	my $cmd = shift;
 	my $args = shift;
 	my $env = shift;
 	my $argv = shift;

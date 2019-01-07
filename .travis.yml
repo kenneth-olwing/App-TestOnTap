@@ -1,4 +1,5 @@
-language: perl
+language:
+  - perl
 perl:
   - '5.28'
   - '5.26'
@@ -12,5 +13,3 @@ perl:
   - '5.10'
 env:
   - APP_TESTONTAP_SKIP_TEST_60=1
-os:
-  - windows

@@ -42,6 +42,15 @@ sub __execPreprocess
 	my $cmd = shift;
 	my $args = shift;
 
+	runprocess
+		(
+			sub {},
+			$args->getSuiteRoot(),
+			(
+				@$cmd,
+				@{$self->getArgv()}
+			)
+		);	 
 	my @preproc;	
 	my $xit = runprocess
 				(
@@ -49,7 +58,7 @@ sub __execPreprocess
 					$args->getSuiteRoot(),
 					(
 						@$cmd,
-#						@{$self->getArgv()}
+						@{$self->getArgv()}
 					)
 				);	 
 	

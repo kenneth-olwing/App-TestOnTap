@@ -45,7 +45,12 @@ sub __execPreprocess
 	my @preproc;	
 	my $xit = runprocess
 				(
-					sub { push(@preproc, $_[0])},
+					sub
+						{
+							my $l = shift;
+							chomp($l);
+							push(@preproc, $l)
+						},
 					$args->getSuiteRoot(),
 					(
 						@$cmd,
@@ -69,7 +74,6 @@ sub __execPreprocess
 					}
 		);
 
-	chomp(@preproc);
 	while (my $line = shift(@preproc))
 	{
 		$line =~ s/^\s+|\s+$//g;
@@ -80,7 +84,8 @@ sub __execPreprocess
 		}
 		else
 		{
-			warn("WARNING: Unexpected line during preprocessing: '$line'\n") unless $line =~ /^\s*#/;
+			next if $line =~ /^\s*#/;
+			warn("WARNING: Unexpected line during preprocessing: '$line'\n");
 		}
 	}
 }
@@ -94,7 +99,10 @@ sub __parseEnvLines
 	my %env;
 	while (my $line = shift(@$preproc))
 	{
+		$line =~ s/^\s+|\s+$//g;
+		next unless $line;
 		last if $line =~ /^\s*#\s*END\s+\Q$type\E\s*$/;
+		next if $line =~ /^\s*#/;
 		die("Invalid $type line during preprocessing: '$line'\n") unless ($line =~ /^([^=]+)=(.*)/);
 		$env{$1} = $2 || '';
 	}

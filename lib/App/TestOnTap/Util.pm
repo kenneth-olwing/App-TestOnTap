@@ -73,7 +73,7 @@ sub stringifyTime
 	return strftime("%Y%m%dT%H%M%S${subsecs}Z", gmtime($tm));
 }
 
-# ensure we end up with an array or undef
+# ensure we end up with an array
 # input can be:
 #   undef
 # 	an array

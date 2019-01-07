@@ -117,6 +117,7 @@ package MY;
 sub postamble
 {
 	return <<'MAKE_FRAG';
+TEST_VERBOSE=1
 
 XTEST_STANDARD_FILES = xt/standard/*.t
 XTEST_AUTHOR_FILES = xt/author/*.t

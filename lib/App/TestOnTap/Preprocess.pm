@@ -1,12 +1,10 @@
 package App::TestOnTap::Preprocess;
 
-use POSIX qw(getcwd);
+use POSIX;
+use App::TestOnTap::Util qw(runprocess);
 
 use strict;
 use warnings;
-
-our $IS_WINDOWS = $^O eq 'MSWin32';
-our $SHELL_ARG_DELIM = $IS_WINDOWS ? '"' : "'";
 
 # CTOR
 #
@@ -44,23 +42,16 @@ sub __execPreprocess
 	my $cmd = shift;
 	my $args = shift;
 
-	my @cmdline =
-		(
-			@$cmd,
-			@{$self->getArgv()}
-		);
-	 
-	my $cwd = getcwd();
-	my $wd = $args->getSuiteRoot();
-	chdir($wd) || die("Failed to change directory to '$wd': $!\n");
-	$_ = "$SHELL_ARG_DELIM$_$SHELL_ARG_DELIM" foreach (@cmdline);
-	my $strcmd = join(' ', @cmdline);
-	
-	my @preproc = qx("$strcmd 2>&1");
-	die("Failed to run '$strcmd': $!\n") unless $? == 0;
-	my $xit = $? >> 8;
-
-	chdir($cwd) || die("Failed to change directory back to '$cwd': $!\n");
+	my @preproc;	
+	my $xit = runprocess
+				(
+					sub { push(@preproc, $_[0])},
+					$args->getSuiteRoot(),
+					(
+						@$cmd,
+						@{$self->getArgv()}
+					)
+				);	 
 	
 	die("ERROR: exit code '$xit' when running preprocess command\n") if $xit;
 

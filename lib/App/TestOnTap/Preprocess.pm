@@ -49,7 +49,7 @@ sub __execPreprocess
 					$args->getSuiteRoot(),
 					(
 						@$cmd,
-						@{$self->getArgv()}
+#						@{$self->getArgv()}
 					)
 				);	 
 	

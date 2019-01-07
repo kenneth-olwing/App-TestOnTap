@@ -49,7 +49,8 @@ sub __execPreprocess
 						{
 							my $l = shift;
 							chomp($l);
-							push(@preproc, $l)
+							$l =~ s/^\s+|\s+$//g;
+							push(@preproc, $l) if ($l && $l !~ /^\s*##/);
 						},
 					$args->getSuiteRoot(),
 					(
@@ -64,27 +65,18 @@ sub __execPreprocess
 
 	my %types =
 		(
-			ENV => sub
-					{
-						$self->__parseEnvLines(@_)
-					},
-			ARGV => sub
-					{
-						$self->__parseArgvLines(@_)
-					}
+			ENV => sub { $self->__parseEnvLines(@_) },
+			ARGV => sub { $self->__parseArgvLines(@_) }
 		);
 
 	while (my $line = shift(@preproc))
 	{
-		$line =~ s/^\s+|\s+$//g;
-		next unless $line;
 		if ($line =~ /^\s*#\s*BEGIN\s+([^\s]+)\s*$/ && exists($types{$1}))
 		{
 			$types{$1}->($1, \@preproc);
 		}
 		else
 		{
-			next if $line =~ /^\s*#/;
 			warn("WARNING: Unexpected line during preprocessing: '$line'\n");
 		}
 	}
@@ -99,10 +91,7 @@ sub __parseEnvLines
 	my %env;
 	while (my $line = shift(@$preproc))
 	{
-		$line =~ s/^\s+|\s+$//g;
-		next unless $line;
 		last if $line =~ /^\s*#\s*END\s+\Q$type\E\s*$/;
-		next if $line =~ /^\s*#/;
 		die("Invalid $type line during preprocessing: '$line'\n") unless ($line =~ /^([^=]+)=(.*)/);
 		$env{$1} = $2 || '';
 	}

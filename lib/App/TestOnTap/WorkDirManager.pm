@@ -3,7 +3,7 @@ package App::TestOnTap::WorkDirManager;
 use strict;
 use warnings;
 
-our $VERSION = '0.059';
+our $VERSION = '1.000';
 my $version = $VERSION;
 $VERSION = eval $VERSION;
 

@@ -3,6 +3,10 @@ package App::TestOnTap::Util;
 use strict;
 use warnings;
 
+our $VERSION = '0.059';
+my $version = $VERSION;
+$VERSION = eval $VERSION;
+
 use Cwd;
 use POSIX qw(strftime);
 use File::Basename;

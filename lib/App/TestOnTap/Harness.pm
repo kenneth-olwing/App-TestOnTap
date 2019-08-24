@@ -3,6 +3,10 @@ package App::TestOnTap::Harness;
 use strict;
 use warnings;
 
+our $VERSION = '0.059';
+my $version = $VERSION;
+$VERSION = eval $VERSION;
+
 use base qw(TAP::Harness);
 
 use App::TestOnTap::Scheduler;

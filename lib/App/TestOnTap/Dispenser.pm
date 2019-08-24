@@ -3,6 +3,10 @@ package App::TestOnTap::Dispenser;
 use strict;
 use warnings;
 
+our $VERSION = '0.059';
+my $version = $VERSION;
+$VERSION = eval $VERSION;
+
 use App::TestOnTap::Util qw(slashify);
 use App::TestOnTap::OrderStrategy;
 

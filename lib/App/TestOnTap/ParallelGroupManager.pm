@@ -3,6 +3,10 @@ package App::TestOnTap::ParallelGroupManager;
 use strict;
 use warnings;
 
+our $VERSION = '0.059';
+my $version = $VERSION;
+$VERSION = eval $VERSION;
+
 use Grep::Query;
 use List::MoreUtils qw(singleton);
 

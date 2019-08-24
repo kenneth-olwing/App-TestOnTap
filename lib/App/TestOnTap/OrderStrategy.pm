@@ -3,6 +3,10 @@ package App::TestOnTap::OrderStrategy;
 use strict;
 use warnings;
 
+our $VERSION = '0.059';
+my $version = $VERSION;
+$VERSION = eval $VERSION;
+
 use List::Util qw(shuffle);
 use Sort::Naturally qw(nsort);
 

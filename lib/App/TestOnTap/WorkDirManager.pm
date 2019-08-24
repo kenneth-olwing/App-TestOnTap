@@ -3,6 +3,10 @@ package App::TestOnTap::WorkDirManager;
 use strict;
 use warnings;
 
+our $VERSION = '0.059';
+my $version = $VERSION;
+$VERSION = eval $VERSION;
+
 use App::TestOnTap::Util qw(slashify stringifyTime $IS_WINDOWS);
 
 use Archive::Zip qw(:ERROR_CODES);

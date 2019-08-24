@@ -3,6 +3,10 @@
 use strict;
 use warnings;
 
+our $VERSION = '0.059';
+my $version = $VERSION;
+$VERSION = eval $VERSION;
+
 use App::TestOnTap;
 
 # This is very shallow; just pass @ARGV on to the A::TOT entry point

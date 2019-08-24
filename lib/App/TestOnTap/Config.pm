@@ -3,6 +3,10 @@ package App::TestOnTap::Config;
 use strict;
 use warnings;
 
+our $VERSION = '0.059';
+my $version = $VERSION;
+$VERSION = eval $VERSION;
+
 use App::TestOnTap::Util qw(slashify ensureArray);
 use App::TestOnTap::OrderStrategy;
 use App::TestOnTap::ExecMap;

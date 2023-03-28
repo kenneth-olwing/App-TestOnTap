@@ -1,0 +1,17 @@
+# required to identify this suite
+#
+id = eafd4b53-baf6-11e7-82b0-c450dfd4b85a 
+
+# all tests are potentially parallelizable
+#
+parallelizable = true
+
+execmap = t-files
+
+[EXECMAP t-files]
+match = regexp(\.t$)
+cmd = perl
+
+[DEPENDENCY All depends on init]
+match = not eq(init.t)
+dependson = eq(init.t)

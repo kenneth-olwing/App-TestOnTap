@@ -1,0 +1,26 @@
+id = 5ad5b912-ba38-11e7-a321-f0643fbc7828
+
+order = natural
+
+parallelizable = true
+
+execmap = t-files
+
+[EXECMAP t-files]
+match = regexp(\.t$)
+cmd = perl
+
+[DEPENDENCY First]
+# To ensure it runs first, everything
+# except createdb itself depends on createdb 
+#
+match		= not eq(createdb.t)
+dependson	= eq(createdb.t)
+
+[DEPENDENCY Last]
+# To ensure it runs last, everything
+# depends on deletedb except deletedb itself
+#
+match		= eq(deletedb.t)
+dependson	= not eq(deletedb.t)
+

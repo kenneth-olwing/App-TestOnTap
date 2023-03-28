@@ -1,0 +1,7 @@
+id = 739da4ed-c2f5-11e7-9d59-9ef6daf0c0a2
+
+execmap = au3-files
+
+[EXECMAP au3-files]
+match = regexp(\.au3$)
+cmd = autoit3_console.exe

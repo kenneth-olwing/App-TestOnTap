@@ -1,0 +1,9 @@
+# required to identify this suite
+#
+id = 766ef8f8-ba21-11e7-8c6a-816078a52c78
+
+execmap = t-files
+
+[EXECMAP t-files]
+match = regexp(\.t$)
+cmd = perl

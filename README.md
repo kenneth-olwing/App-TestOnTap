@@ -6,9 +6,9 @@
 
 ### About
 
-App::TestOnTap is a Perl module used for executing test suites with executables providing TAP.
+App::TestOnTap is a Perl module used for executing test suites with any form of "executables providing TAP (e.g. while this tool is implemented in Perl, it has nothing to do with what tests it drives).
 
-It is scalable from small to large test suites, and also allows test parallelizaion.
+It is scalable from small to large test suites, and also allows test parallelization.
 Optionally it will aggregate the results and package them for later analysis.
 
 Note that the the code branch contains a tutorial with hands-on exercises which I hope can be useful to get a good introduction to how 'TestOnTap' works and why.

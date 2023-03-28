@@ -1,0 +1,7 @@
+id = c0c248da-b4ca-11e7-8bf6-d641e3f6a8ae
+
+execmap = t-files
+
+[EXECMAP t-files]
+match = regexp(\.t$)
+cmd = perl

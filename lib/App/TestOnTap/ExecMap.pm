@@ -3,38 +3,25 @@ package App::TestOnTap::ExecMap;
 use strict;
 use warnings;
 
-use App::TestOnTap::Util qw(trim $IS_WINDOWS);
+our $VERSION = '1.001';
+my $version = $VERSION;
+$VERSION = eval $VERSION;
 
-use Config::Std;
+use App::TestOnTap::Util qw(trim $IS_WINDOWS ensureArray);
+
+use Grep::Query;
 
 # CTOR
 #
 sub new
 {
 	my $class = shift;
-	my $cfg = shift || __defaultCfg();
-	my $delegate = shift;
+	my $cfg = shift;
 
-	my $self = bless( { delegate => $delegate }, $class);
+	my $self = bless( {}, $class);
 	$self->__parseExecMap($cfg);
 	
 	return $self;
-}
-
-sub newFromFile
-{
-	my $class = shift;
-	my $fn = shift;
-	my $delegate = shift;
-	
-	# read in the file in Config::Std style
-	#
-	read_config($fn, my %cfg);
-	
-	my $section = $cfg{EXECMAP};
-	die("Missing EXECMAP section in '$fn'\n") unless $section;
-
-	return $class->new($section, $delegate);
 }
 
 sub __parseExecMap
@@ -42,107 +29,170 @@ sub __parseExecMap
 	my $self = shift;
 	my $cfg = shift;
 
-	my %ext2cmd;
+	my @matcherCmdlinePairs;
 
-	while (my ($exts, $cmdline) = each(%$cfg))
+	my $emOrder = $cfg->{''}->{execmap};
+	if (!$emOrder)
 	{
-		foreach my $ext (split(' ', trim($exts)))
-		{
-			# we want to store the cmd as an array
-			# Config::Std allows it to be in multiple forms:
-			#   a single line (we split it on space)
-			#   a ready-made array (take as is)
-			#   a string with embedded \n (split on that)
-			#
-			$ext2cmd{$ext} =
-				(ref($cmdline) eq 'ARRAY')
-					? $cmdline
-					: ($cmdline =~ m#\n#)
-						? [ split("\n", $cmdline) ]
-						: [ split(' ', $cmdline) ];
-		}
+		warn("WARNING: No execmap found, using internal default!\n");
+		$cfg = __defaultCfg();
+		$emOrder = $cfg->{''}->{execmap};
+	}
+	$emOrder = ensureArray($emOrder);
+	
+	foreach my $em (@$emOrder)
+	{
+		my $emSec = $cfg->{"EXECMAP $em"};
+		die("Missing execmap section for '$em'\n") unless $emSec;
+
+		# trip any unknown keys
+		#
+		warn("WARNING: Unknown key '$_' in execmap section '$em'\n") foreach (grep(!/^(match|cmd)$/, keys(%$emSec)));
+		
+		# extract the ones we want
+		#
+		my $match = $emSec->{match};
+		my $cmd = $emSec->{cmd} || '';
+		die("The execmap section '$em' must have at least the 'match' key\n") unless $match;
+
+		# compile the query
+		#
+		my $matcher = Grep::Query->new($match);
+
+		# we want to store the cmd as an array
+		# Config::Std allows it to be in multiple forms:
+		#   a single line (we split it on space)
+		#   a ready-made array (take as is)
+		#   a string with embedded \n (split on that)
+		#
+		my $cmdline = ensureArray($cmd);
+					
+		# now store the matcher and cmdline in an array so we can evaluate them
+		# in a defined order when we need to
+		#
+		push(@matcherCmdlinePairs, [ $matcher, $cmdline ]);
 	}
 
 	# not much meaning in continuing if there are no mappings at all...!
 	#
-	die("No entries in the execmap\n") unless keys(%ext2cmd);
+	die("No entries in the execmap\n") unless @matcherCmdlinePairs;
 
-	$self->{ext2cmd} = \%ext2cmd;
+	$self->{mcpairs} = \@matcherCmdlinePairs;
 }
 
 sub __defaultCfg
 {
-	# TODO: add useful standard mappings here
+	# TODO: add more useful standard mappings here
 	#
-	return
-		{
-			# well, a no-brainer...:-)
-			#
-			'pl t' => 'perl',
-			
-			# if python is preferred...
-			#
-			py => 'python',
-
-			# quite possible and important for java shops
-			# (couple with some nice junit and other helpers)
-			#
-			jar => [qw(java -jar)],
-			
-			# common variants for groovy scripts, I understand...
-			#
-			'groovy gsh gvy gy' => 'groovy',
-			
-			# add other conveniences here
-			#
-			# 'one or more extensions' => 'command to use',
-
-			# basic platform specifics
-			# 
-			$IS_WINDOWS
-				?
-					(
-						# possible, but perhaps not likely
-						#
-						'bat cmd' => [qw(cmd.exe /c)],
-					)
-				:
-					(
-						# shell scripting is powerful, so why not
-						#
-						sh => '/bin/sh'
-					),
-		}
+	my %cfg = 
+		(
+			'' =>
+				{
+					execmap => [qw(perl python java groovy shell autoit3 batch binary)] 
+				},
+			'EXECMAP perl' =>
+				{
+					# well, a no-brainer...:-)
+					#
+					'match' => 'regexp[\.(t|pl)$]',
+					'cmd' => 'perl',
+				},
+			'EXECMAP python' =>
+				{
+					# if python is preferred...
+					#
+					'match' => 'regexp[\.py$]',
+					'cmd' => 'python',
+				},
+			'EXECMAP java' =>
+				{
+					# quite possible and important for java shops
+					# (couple with some nice junit and other helpers)
+					#
+					'match' => 'regexp[\.jar$]',
+					'cmd' => [qw(java -jar)],
+				},
+			'EXECMAP groovy' =>
+				{
+					# common variants for groovy scripts, I understand...
+					#
+					'match' => 'regexp[\.(groovy|gsh|gvy|gy)$]',
+					'cmd' => 'groovy',
+				},
+			'EXECMAP shell' =>
+				{
+					# shell scripting is powerful, so why not
+					#
+					'match' => 'regexp[\.sh$]',
+					'cmd' => 'sh',
+				},
+			'EXECMAP autoit3' =>
+				{
+					# For using AutoIt scripts (https://www.autoitscript.com/site/autoit/)
+					# (Windows only)
+					#
+					'match' => 'regexp[\.au3$]',
+					'cmd' => 'autoit3',
+				},
+			'EXECMAP batch' =>
+				{
+					# possible, but perhaps not likely
+					# (Windows only)
+					#
+					'match' => 'regexp[\.(bat|cmd)$]',
+					'cmd' => [qw(cmd.exe /c)],
+				},
+			'EXECMAP binary' =>
+				{
+					# for directly executable binaries, no actual 'cmd' is needed
+					# On Windows: rename 'xyz.exe' => 'xyz.tbin'
+					# On Unix: rename 'xyz' => 'xyz.tbin'
+					#
+					'match' => 'regexp[\.tbin$]',
+				},
+		);
+	
+	return \%cfg;
 }
 
-# just check if the given extension is in this map
+# just check if the given test has a mapping
 #
-sub mapsExtension
+sub hasMapping
 {
 	my $self = shift;
-	my $ext = shift;
-
-	return
-		($ext && exists($self->{ext2cmd}->{$ext}))
-			? 1
-			: defined($self->{delegate})
-				? $self->{delegate}->mapsExtension($ext)
-				: 0;
+	my $testName = shift;
+	
+	foreach my $matcherCmdlinePair (@{$self->{mcpairs}})
+	{
+		return 1 if $matcherCmdlinePair->[0]->qgrep($testName);
+	}
+	
+	if (defined($self->{delegate}))
+	{
+		return 1 if $self->{delegate}->hasMapping($testName);
+	}
+	
+	return 0;
 }
 
-# retrieve the command array for the given extension
+# retrieve the cmdline map for the test
 #
-sub getCommandForExtension
+sub getMapping
 {
 	my $self = shift;
-	my $ext = shift;
-
-	return
-		exists($self->{ext2cmd}->{$ext})
-			? $self->{ext2cmd}->{$ext}
-			: defined($self->{delegate})
-				? $self->{delegate}->getCommandForExtension($ext)
-				: undef;
+	my $testName = shift;
+	
+	foreach my $matcherCmdlinePair (@{$self->{mcpairs}})
+	{
+		return $matcherCmdlinePair->[1] if $matcherCmdlinePair->[0]->qgrep($testName);
+	}
+	
+	if (defined($self->{delegate}))
+	{
+		return $self->{delegate}->getMapping($testName);
+	}
+	
+	die("INTERNAL ERROR - should not reach this point!");
 }
 
 1;

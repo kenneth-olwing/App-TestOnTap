@@ -1,0 +1,83 @@
+=head1 NAME
+
+App::TestOnTap::_Args - hidden flags
+
+Commandline options and arguments understood for TestOnTap processing
+
+=head1 VERSION
+
+Version 1.001
+
+=head1 SYNOPSIS
+
+ testontap
+    [ --_help ]
+    [
+    	{
+    		--_pp
+    			|
+    		--_pp_script <filepath>
+    			|
+    		--_info
+    			|
+    		--_ignore_dependencies
+    	}
+    ]
+
+=head1 OPTIONS AND ARGUMENTS
+
+All options can be abbreviated, as long as they are unambiguous. Option matching is case
+sensitive. Forcibly end option parsing using '--'.
+
+=head2
+
+This documents some 'hidden' flags, generally because they're somewhat particular and/or
+not ready for prime time...
+
+=over
+
+=item B<--_help>
+
+Displays usage and help with options/arguments. If given, nothing else will be done.
+
+=item B<--_pp> or B<--_pp_script E<lt>pathE<gt>>
+
+Will attempt to generate a binary using the 'pp' command from PAR::Packer.
+The binary gets a default name of 'testontap-E<lt>versionE<gt>-E<lt>osE<gt>-E<lt>archE<gt>'.
+
+An existing file will not be overwritten.
+
+By using the C<--verbose> flag, pp verbosity can be raised.
+
+If you need to customize the creation of the binary, use the C<--_pp_script> option to generate a Perl
+script. Changing the output file name can easiest be done by using '--outfile E<lt>fileE<gt>', but
+for more advanced purposes, edit the script directly. The script should be run immediately after
+generation, i.e. before any config changes are made to the Perl installation, and not saved after that.
+ 
+When a packed binary is run, any C<PERL5LIB> envvar is just dropped due to how PAR::Packer works, but if you find it
+is needed when running the tests, set the C<TESTONTAP_PERL5LIB> to the desired value and the C<PERL5LIB> variable
+will be set with that value during the running of the tests.  
+
+Note that these options can not be used when you already run a binary.
+
+=item B<--_pp_info>
+
+Prints information about the context when the binary was built - the configuration (perl -V), the modules
+available (according to L<ExtUtils::Installed>) and the command line used for the C<pp> command.
+
+This information is embedded at the time of packing and read from those files.  
+
+Note that this option can only be used when you run a binary.
+
+=item B<--_ignore_dependencies>
+
+This will turn off the dependencies mechanism between tests - only use for debugging/testing of testontap itself.
+
+=back
+
+=head1 MORE HELP
+
+For full information on TestOnTap, see the L<manual|App::TestOnTap>, or use I<--manual>
+or run I<perldoc App::TestOnTap> to see the manual page.
+
+=cut

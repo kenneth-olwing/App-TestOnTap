@@ -1,3 +1,5 @@
+use 5.010_001;
+
 use strict;
 use warnings;
 
@@ -19,10 +21,10 @@ my $configure_requires =
 
 my $test_requires =
 	{
-		'Archive::Zip'	=>	1.47,	# 1.30 misbehaves in t\21-verify_saved_archive.t
-		'Test::More'	=>	0,		# initial dev used: 1.001014
-		'Capture::Tiny'	=>	0,		# initial dev used: 0.30
-		'FindBin'		=>	0,		# initial dev used: 1.51 
+		# very old ones lack "done_testing()", and recent one changes a newline behavior
+		'Test::Simple'	=>	1.302085,
+		'Test::More'	=>	1.302085,
+		'Capture::Tiny'	=>	0,			# initial dev used: 0.30
 	};
 
 my $eumm_understands_meta_merge = $ExtUtils::MakeMaker::VERSION ge '6.46';
@@ -34,6 +36,7 @@ WriteMakefile(
     VERSION_FROM     => 'lib/App/TestOnTap.pm',
     ABSTRACT_FROM    => 'lib/App/TestOnTap.pod',
     LICENSE          => 'artistic_2',
+    MIN_PERL_VERSION => 5.010_001, 
     EXE_FILES         => [ 'script/testontap' ],
 	$eumm_understands_meta_merge
 		? (
@@ -51,6 +54,10 @@ WriteMakefile(
 									url => 'https://github.com/kenneth-olwing/App-TestOnTap.git',
 									web => 'https://github.com/kenneth-olwing/App-TestOnTap'
 								}
+						},
+					no_index =>
+						{
+							directory => [ 'extras', 'author' ],
 						}
 				}
 			)
@@ -63,10 +70,12 @@ WriteMakefile(
 			$eumm_understands_conf_and_test_requires_properly
 				? ()
 				: ( %$configure_requires, %$test_requires ),
-			'Grep::Query'						=>	1.002,
-			'UUID::Tiny'						=>	0,		# initial dev used: 1.04
+			'Archive::Zip'						=>	1.47,	# 1.30 misbehaves in t\21-verify_saved_archive.t
+			'Config'							=>  0,
 			'Config::Std'						=>	0,		# initial dev used: 0.901
+			'Cwd'								=>  0,
 			'Exporter'							=>	0,		# initial dev used: 5.72
+			'ExtUtils::Installed'				=>  0,
 			'File::Basename'					=>	0,		# initial dev used: 2.85
 			'File::Copy::Recursive'				=>	0,		# initial dev used: 0.38
 			'File::Find'						=>	0,		# initial dev used: 1.27
@@ -74,17 +83,23 @@ WriteMakefile(
 			'File::Slurp'						=>	0,		# initial dev used: 9999.19
 			'File::Spec'						=>	0,		# initial dev used: 3.48_01
 			'File::Temp'						=>	0,		# initial dev used: 0.2304
+			'FindBin'							=>	0,		# initial dev used: 1.51 
 			'Getopt::Long'						=>	0,		# initial dev used: 2.47
-			'Grep::Query'						=>	0,		# initial dev used: 1.002
+			'Grep::Query'						=>	1.006,
 			'JSON'								=>	0,		# initial dev used: 2.90
+			'List::Util'						=>	0,		# Core 5.24
+			'List::MoreUtils'					=>	0.428,	# Must have 'singleton'
+			'LWP::Simple'						=>	0,		# initial dev used: 6.17
 			'Net::Domain'						=>	0,		# initial dev used: 3.07
 			'POSIX'								=>	0,		# initial dev used: 1.38_03
-			'Pod::Find'							=>	0,		# initial dev used: 1.63
+			'Pod::Simple::Search'				=>	0,		# initial dev used: 3.35 
 			'Pod::Usage'						=>	0,		# initial dev used: 1.67
+			'Sort::Naturally'					=>	0,		# initial dev used: 1.03
 			'TAP::Formatter::Console'			=>	0,		# initial dev used: 3.35
 			'TAP::Formatter::File'				=>	0,		# initial dev used: 3.35
 			'TAP::Parser::Scheduler::Job'		=>	0,		# initial dev used: 3.35
 			'TAP::Parser::Scheduler::Spinner'	=>	0,		# initial dev used: 3.35
+			'UUID::Tiny'						=>	0,		# initial dev used: 1.04
 		},
 	dist  =>
 		{

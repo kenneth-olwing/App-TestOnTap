@@ -9,18 +9,20 @@ use TestUtils;
 
 use File::Temp qw(tempdir);
 use Archive::Zip qw(:ERROR_CODES);
+use Cwd;
 
-use Test::More tests => 10;
+use Test::More tests => 11;
 
 my $suitename = TestUtils::suitename_from_script();
 
 my $tmpdir = tempdir(CLEANUP => 1);
 ok(-d $tmpdir, "Created tmpdir $tmpdir");
 
-my ($ret, $stdout, $stderr) = TestUtils::xeqsuite('--verbose', '--archive', '--savedirectory', $tmpdir);
+my ($ret, $stdout, $stderr) = TestUtils::xeqsuite(['--verbose', '--archive', '--savedirectory', $tmpdir]);
 
 is($ret, 0, "Exited with 0");
-like($stderr->[0], qr/^WARNING: No configuration file found, using blank with generated id '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'!$/, "Generated id");
+like($stderr->[0], qr/^WARNING: No id found, using generated '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'!$/, "Generated id");
+like($stderr->[1], qr/^WARNING: No execmap found, using internal default!$/, "default execmap");
 like($stdout->[14], qr/^Files=1, Tests=10, /, "Only one file with 10 tests found");
 is($stdout->[15], "Result: PASS", "Passed");
 like($stdout->[16], qr(^Result saved to '\Q$tmpdir\E[\\/]\Q$suitename\E\.\d{8}T\d{6}Z\.[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\.zip'$), "Saved to archive");
@@ -30,8 +32,15 @@ my $savedarchive = $1;
 
 ok(-f $savedarchive, "Archive $savedarchive exists");
 
+# test failure caused by the tmpdir being under a symlink and A::Z apparently
+# having a security fix that invalidates extracting there...
+# we can work around it by chdir there and unpacking to '.'
+#
+my $pwd = getcwd();
+chdir($tmpdir) or die("Failed to chdir($tmpdir): $!");
 my $zip = Archive::Zip->new($savedarchive);
-ok($zip->extractTree('', $tmpdir) == AZ_OK, "Extract tree");
+ok($zip->extractTree('', '.') == AZ_OK, "Extract tree");
+chdir($pwd) or die("Failed to chdir($pwd): $!");
 
 my $saveddir = $savedarchive;
 $saveddir =~ s/\.zip$//;
@@ -45,14 +54,17 @@ my $expected_tree =
 	[
 		qw
 			(
-				env.json
-				meta.json
-				private/
-				result/
-				result/t.pl.json
-				summary.json
-				tap/
-				tap/t.pl.tap
+				suite/
+				suite/persist
+				testontap/
+				testontap/env.json
+				testontap/meta.json
+				testontap/result/
+				testontap/result/t.pl.json
+				testontap/summary.json
+				testontap/tap/
+				testontap/tap/t.pl.tap
+				testontap/testinfo.json
 			)
 	];
 

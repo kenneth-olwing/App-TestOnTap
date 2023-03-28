@@ -3,9 +3,15 @@ package App::TestOnTap::Dispenser;
 use strict;
 use warnings;
 
-use App::TestOnTap::Util qw(slashify getExtension);
+our $VERSION = '1.001';
+my $version = $VERSION;
+$VERSION = eval $VERSION;
+
+use App::TestOnTap::Util qw(slashify);
+use App::TestOnTap::OrderStrategy;
 
 use File::Find;
+use List::Util qw(shuffle max);
 
 # CTOR
 #
@@ -14,7 +20,7 @@ sub new
 	my $class = shift;
 	my $args = shift;
 
-	my $self = bless( { args => $args, inprogress => {} }, $class);
+	my $self = bless( { args => $args, inprogress => {}, orderstrategy => App::TestOnTap::OrderStrategy->new() }, $class);
 	$self->__analyze(); 
 	
 	return $self;
@@ -25,31 +31,70 @@ sub __analyze
 	my $self = shift;
 
 	# find all tests in the suite root
-	# (subject to config include filtering)
+	# (subject to config skip filtering)
 	#	
-	my $tests = __scan($self->{args}->getSuiteRoot(), $self->{args}->getConfig());
+	my $tests = $self->__scan();
 
 	# create a graph with all the tests as 'from' vertices, begin with no dependencies
 	#
 	my %graph = map { $_ => [] } @$tests;
 	
+	# figure out the longest dep rule name with some extra to produce some
+	# nice delimiters...
+	#
+	my @depRuleNames = $self->{args}->getConfig()->getDependencyRuleNames();
+	my $longestDepRuleName = 0;
+	$longestDepRuleName = max($longestDepRuleName, length($_)) foreach (@depRuleNames);
+	$longestDepRuleName += 18;
+	my $topDelimLine = '*' x $longestDepRuleName;
+
 	# iterate over all dependency rules and add edges from => to vertices
 	#
-	foreach my $depRuleName ($self->{args}->getConfig()->getDependencyRuleNames())
+	foreach my $depRuleName (@depRuleNames)
 	{
 		my ($fromVertices, $toVertices) = $self->{args}->getConfig()->getMatchesAndDependenciesForRule($depRuleName, $tests);
+		if ($self->{args}->doDryRun())
+		{
+			print "$topDelimLine\n";
+			print "Dependency rule '$depRuleName'\n";
+			print "Query for 'match' matches:\n";
+			if (@$fromVertices)
+			{
+				print "  $_\n" foreach (@$fromVertices);
+			}
+			else
+			{
+				print "  (nothing)\n";
+			}
+			print "Query for 'dependson' matches:\n";
+			if (@$toVertices)
+			{
+				print "  $_\n" foreach (@$toVertices);
+			}
+			else
+			{
+				print "(nothing)\n";
+			}
+		}
+		else
+		{		
+			warn("WARNING: No tests selected by 'match' in dependency rule '$depRuleName'\n") unless @$fromVertices;
+			warn("WARNING: No tests selected by 'dependson' in dependency rule '$depRuleName'\n") unless @$toVertices;
+		}
 		push(@{$graph{$_}}, @$toVertices) foreach (@$fromVertices);
 	}
+	
+	$self->{args}->getWorkDirManager()->recordFullGraph(%graph);
 		
 	# trap any cyclic dependency problems right now
 	#
-	__toposort(\%graph);
+	$self->__toposort(\%graph);
 
 	# tentatively store the full graph
 	#
 	$self->{graph} = \%graph;
 	
-	# if user decided to supply an include filter, now try to create a
+	# if user decided to supply a skip filter, now try to create a
 	# graph filtered to matching tests, but without including dependencies...
 	#
 	my $prunedTests = $self->{args}->include($tests);
@@ -57,7 +102,7 @@ sub __analyze
 	# ...but now make sure dependencies are brought along whether
 	# they we're filtered in or not...
 	#
-	if ($prunedTests)
+	if ($prunedTests && scalar(@$prunedTests) != scalar(@$tests))
 	{
 		my %prunedGraph;
 
@@ -77,6 +122,8 @@ sub __analyze
 		# store the pruned graph instead
 		#
 		$self->{graph} = \%prunedGraph;
+		
+		$self->{args}->getWorkDirManager()->recordPrunedGraph(%prunedGraph);
 	}
 }
 
@@ -91,7 +138,7 @@ sub getEligibleTests
 {
 	my $self = shift;
 	my $completed = shift || [];
-	
+
 	# remove items that have been completed from the graph
 	#
 	foreach my $t (@$completed)
@@ -103,7 +150,7 @@ sub getEligibleTests
 	# no more items to run at all - we're finished
 	#
 	return unless keys(%{$self->{graph}});
-	
+
 	# if we're still here, remove any references to completed tests
 	# from the remaining tests
 	#
@@ -115,81 +162,83 @@ sub getEligibleTests
 		}
 	}
 
-	# toposort the remaining, and divide them into parallelizable and non-parallelizable
+	# extract those ready to run and separate them into parallelizable and not parallelizable
 	#
 	my @parallelizable;
 	my @nonParallelizable;
-	foreach my $t (__toposort($self->{graph}))
+	foreach my $t (keys(%{$self->{graph}}))
 	{
-		if ($self->{args}->getConfig()->parallelizable($t))
-		{
-			push(@parallelizable, $t);
-		}
-		else
-		{
-			push(@nonParallelizable, $t);
-		}
-	}
-
-	# now select those that are eligible
-	#
-	my @eligible;
-	
-	# give away as many parallelizable as possible first
-	# 
-	foreach my $t (@parallelizable)
-	{
+		# tests that have no dependencies and are not already in progress are
+		# now ready to run
+		# 
 		if (!@{$self->{graph}->{$t}} && !$self->{inprogress}->{$t})
 		{
-			push(@eligible, $t);
-		}
-	}
-
-	# we only deal with non-parallelizables if:
-	#   - there are any to deal out at all...
-	#   - nothing else already is eligible
-	#   - nothing else is presently in progress
-	# 
-	if (@nonParallelizable && !@eligible && !keys(%{$self->{inprogress}}))
-	{
-		# iterate over them, but as soon one is eligible, get out
-		#
-		foreach my $t (@nonParallelizable)
-		{
-			if (!@{$self->{graph}->{$t}} && !$self->{inprogress}->{$t})
+			if ($self->{args}->getConfig()->parallelizable($t))
 			{
-				push(@eligible, $t);
-				last;
+				push(@parallelizable, $t);
+			}
+			else
+			{
+				push(@nonParallelizable, $t);
 			}
 		}
+	}	
+
+	# order them according to the chosen strategy
+	#
+	my $orderstrategy = $self->{args}->getOrderStrategy() || $self->{args}->getConfig()->getOrderStrategy() || $self->{orderstrategy}; 
+	$self->{args}->getWorkDirManager()->recordOrderStrategy($orderstrategy);
+	@parallelizable = $orderstrategy->orderList(@parallelizable);
+	@nonParallelizable = $orderstrategy->orderList(@nonParallelizable);
+	
+	# check the parallel groups for max concurrency and cull the overflow (don't forget to account for in progress jobs)
+	#
+	@parallelizable = $self->{args}->getConfig()->getParallelGroupManager()->cull([ keys(%{$self->{inprogress}}) ], \@parallelizable);
+	
+	# now finally select those eligible - try to do away with parallelizable first
+	#
+	my @eligible = @parallelizable;
+	
+	# we only deal with non-parallelizables if:
+	#   - nothing else already is eligible
+	#   - there are any to deal out at all...
+	#   - nothing else is presently in progress
+	# if so, just pick the first
+	# 
+	if (!@eligible && @nonParallelizable && !keys(%{$self->{inprogress}}))
+	{
+		@eligible = $nonParallelizable[0];
 	}
 	
 	# make a note that those we return are in progress
 	#
 	$self->{inprogress}->{$_} = 1 foreach (@eligible);
-	
-	return [ sort(@eligible) ];
+
+	$self->{args}->getWorkDirManager()->recordDispensedOrder(@eligible);
+
+	return \@eligible;
 }
 
 # SUB helpers
 #
 
 # scan the suite root and find all tests
-# (subject to the config include filter)
+# (subject to the config skip filter)
 #
 sub __scan
 {
-	my $suiteRoot = shift;
-	my $config = shift;
+	my $self = shift;
+
+	my $config = $self->{args}->getConfig();
 	
 	my @tests;
 	
 	# to simplify during preprocessing, ensure we have a suite root using forward slashes
 	#
-	my $srfs = slashify($suiteRoot, '/');
+	my $srfs = slashify($self->{args}->getSuiteRoot(), '/');
 	
 	# set up a File::Find preprocessor in order to weed out parts of the scanned tree
-	# that are not selected by the config include filter
+	# that are selected by the optional config skip filter
 	#
 	my $preprocess =
 		sub
@@ -217,7 +266,7 @@ sub __scan
 				my $p = slashify("$File::Find::dir/$entry", '/');
 				$p .= '/' if -d $p;
 				$p =~ s#^\Q$srfs\E/##;
-				next unless $config->include($p);
+				next if $config->skip($p);
 				
 				push(@keep, $entry);
 			}
@@ -240,13 +289,16 @@ sub __scan
 			#
 			return if -d $fn;
 			
-			# ignore files with extensions not handled by the exec mapper
-			#			
-			return unless $config->mapsExtension(getExtension($fn));
-
-			# a bona fide test found - normalize it and store
+			# normalize to test name
 			#
 			$fn =~ s#^\Q$srfs\E/##;
+
+			# ignore files with extensions not handled by the exec mapper
+			#			
+			return unless $config->hasExecMapping($fn);
+
+			# store it as a test!
+			#
 			push(@tests, $fn);
 		};
 	
@@ -254,20 +306,20 @@ sub __scan
 	#
 	find( { preprocess => $preprocess, wanted => $wanted }, $srfs);
 	
+	$self->{args}->getWorkDirManager()->recordFoundTests(@tests);
+	
 	return \@tests;
 }
 
-# essentially follows the algo for depth-first search as described
+# essentially follows the algorithm for depth-first search as described
 # at https://en.wikipedia.org/wiki/Topological_sorting
 #
 # minor change is that since we will use the toposort
 # bottom-up, we push to tail of L instead of unshift to head
 # 
-# beyond dep order, we visit the nodes lexicographically sorted to have
-# at least some repeatability 
-#
 sub __toposort
 {
+	my $self = shift;
 	my $graph = shift;
 	
 	my ($unmarked, $tmpmarked, $permmarked) = (0, 1, 2);
@@ -288,12 +340,12 @@ sub __toposort
 			return if $g{$node}->{mark};
 			
 			$g{$node}->{mark} = $tmpmarked;
-			$visitor->($_, @route, $node) foreach (sort(@{$g{$node}->{deps}}));
+			$visitor->($_, @route, $node) foreach (@{$g{$node}->{deps}});
 			$g{$node}->{mark} = $permmarked;
 			push(@sorted, $node);
 		};
 	
-	foreach my $node (sort(@keys))
+	foreach my $node (@keys)
 	{
 		next unless $g{$node}->{mark} == $unmarked;
 		$visitor->($node);

@@ -3,10 +3,17 @@ package App::TestOnTap::Config;
 use strict;
 use warnings;
 
-use App::TestOnTap::Util qw(slashify);
-use App::TestOnTap::_dbgvars;
+our $VERSION = '1.001';
+my $version = $VERSION;
+$VERSION = eval $VERSION;
+
+use App::TestOnTap::Util qw(slashify ensureArray);
+use App::TestOnTap::OrderStrategy;
+use App::TestOnTap::ExecMap;
+use App::TestOnTap::ParallelGroupManager;
 
 use Config::Std;
+use File::Spec;
 use Grep::Query;
 use UUID::Tiny qw(:std);
 
@@ -15,13 +22,15 @@ use UUID::Tiny qw(:std);
 sub new
 {
 	my $class = shift;
-	my $path = shift;
-	my $userExecMapFile = shift;
+	my $suiteRoot = shift;
+	my $userCfgFile = shift;
+	my $ignoreDeps = shift;
 
-	my $configFilePath = -f $path ? $path : slashify("$path/" . getName());
-	
+	my $configFile = slashify(File::Spec->rel2abs($userCfgFile || "$suiteRoot/" . getName()));
+	die("Missing configuration file '$configFile'\n") unless -f $configFile;
+
 	my $self = bless({}, $class);
-	$self->__readCfgFile($configFilePath, $userExecMapFile);
+	$self->__readCfgFile($configFile, $ignoreDeps);
 
 	return $self;
 }
@@ -32,21 +41,21 @@ sub new
 sub __readCfgFile
 {
 	my $self = shift;
-	my $configFilePath = $App::TestOnTap::_dbgvars::FORCED_CONFIG_FILE || shift;
-	my $userExecMapFile = shift;
+	my $configFile = shift;
+	my $ignoreDeps = shift;
 	
-	my $cfg;
-	if (-e $configFilePath && !$App::TestOnTap::_dbgvars::IGNORE_CONFIG_FILE)
-	{
-		read_config($configFilePath, $cfg);
-	}
-	else
-	{
-		my $id = create_uuid_as_string();
-		warn("WARNING: No configuration file found, using blank with generated id '$id'!\n");
-		$cfg->{''}->{id} = $id; 
-	}
-
+	read_config($configFile, my $cfg);
+	
+	# this looks weird, I know - see https://rt.cpan.org/Public/Bug/Display.html?id=56862
+	#
+	# I seem to hit the problem with "Warning: Name "Config::Std::Hash::DEMOLISH" used only once..."
+	# when running a Par::Packer binary but not when as a 'normal' script.
+	#
+	# The below incantation seem to get rid of that, at least for now. Let's see if it reappears... 
+	#
+	my $dummy = *Config::Std::Hash::DEMOLISH;
+	$dummy = *Config::Std::Hash::DEMOLISH;
+	
 	# pick the necessities from the blank section
 	#
 	my $blankSection = $cfg->{''} || {};
@@ -54,20 +63,26 @@ sub __readCfgFile
 	# a valid uuid is required
 	#
 	my $id = $blankSection->{id} || '';
-	die("Invalid suite id: '$id'") unless $id =~ /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+	if (!$id)
+	{
+		$id = create_uuid_as_string();
+		warn("WARNING: No id found, using generated '$id'!\n");
+		$blankSection->{id} = $id; 
+	}
+	die("Invalid/missing suite id: '$id'") unless $id =~ /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
 	$self->{id} = $id;
 	
-	# an optional filter to select parts while scanning suite root
+	# an optional filter to skip parts while scanning suite root
 	#
 	# ensure it's in text form - an array is simply joined using newlines
 	#
-	my $include = $blankSection->{include};
-	if (defined($include))
+	my $skip = $blankSection->{skip};
+	if (defined($skip))
 	{
-		$include = join("\n", @$include) if ref($include) eq 'ARRAY';
-		$include = Grep::Query->new($include);
+		$skip = join("\n", @$skip) if ref($skip) eq 'ARRAY';
+		$skip = Grep::Query->new($skip);
 	}
-	$self->{include} = $include;
+	$self->{skip} = $skip;
 
 	# an optional filter to check if a test can run in parallel (with any other test) 
 	#
@@ -81,17 +96,28 @@ sub __readCfgFile
 	}
 	$self->{parallelizable} = $parallelizable;
 
-	# set up execmap, possibly as a delegate from a user defined one 
+	# read the optional order strategy
 	#
-	# a non-existing section will cause a default execmap
+	$self->{orderstrategy} = App::TestOnTap::OrderStrategy->new($blankSection->{order}) if $blankSection->{order};	
+	
+	# read the preprocess (optional) command
 	#
-	my $execMap = App::TestOnTap::ExecMap->new($cfg->{EXECMAP});
-	$execMap = App::TestOnTap::ExecMap->newFromFile($userExecMapFile, $execMap) if $userExecMapFile;
-	$self->{execmap} = $execMap; 
+	$self->{preprocesscmd} = ensureArray($blankSection->{preprocess});
+	
+	# read the postprocess (optional) command
+	#
+	$self->{postprocesscmd} = ensureArray($blankSection->{postprocess});
+
+	# set up optional ParallelGroup's 
+	#
+	$self->{parallelgroupmanager} = App::TestOnTap::ParallelGroupManager->new($cfg);
+
+	# set up the execmap, possibly as a delegate from a user defined one 
+	#
+	$self->{execmap} = App::TestOnTap::ExecMap->new($cfg);
 
 	my %depRules;
-
-	if (!$App::TestOnTap::_dbgvars::IGNORE_DEPENDENCIES)
+	if (!$ignoreDeps)
 	{
 		# find all dependency sections
 		#
@@ -111,17 +137,42 @@ sub __readCfgFile
 				$value = join("\n", @$value) if ref($value) eq 'ARRAY';
 				$depRules{$depRuleName}->{$key} = Grep::Query->new($value);
 			}
+			
+			# check for unknown keys...
+			#
+			my %validSectionKeys = map { $_ => 1 } qw(match dependson);
+			foreach my $key (keys(%{$cfg->{$depRuleSectionName}}))
+			{
+				warn("WARNING: Unknown key '$key' in section '[$depRuleSectionName]'\n") unless exists($validSectionKeys{$key});
+			}
 		}
 	}
-
 	$self->{deprules} = \%depRules;
-}
-
-sub getName
-{
-	# works as both class/instance/sub...
+	
+	# finally check the config for unknown sections/keys...
 	#
-	return $App::TestOnTap::_dbgvars::CONFIG_FILE_NAME;
+	my @validSections = (qr/^$/, qr/^DEPENDENCY\s/, qr/^EXECMAP\s+[^\s]+\s*$/, qr/^PARALLELGROUP\s+[^\s]+\s*$/);
+	foreach my $section (sort(keys(%$cfg)))
+	{
+		my $knownSection = 0;
+		foreach my $secToMatch (@validSections)
+		{
+			if ($section =~ /$secToMatch/)
+			{
+				$knownSection = 1;
+				last;
+			}
+		}
+		warn("WARNING: Unknown section: '[$section]'\n") unless $knownSection;
+	}
+
+	my %validBlankSectionKeys = map { $_ => 1 } qw(id skip preprocess postprocess parallelizable order execmap);
+	foreach my $key (sort(keys(%$blankSection)))
+	{
+		warn("WARNING: Unknown key '$key' in default section\n") unless exists($validBlankSectionKeys{$key});
+	}
+	
+	$self->{rawcfg} = { %$cfg };
 }
 
 sub getId
@@ -131,15 +182,43 @@ sub getId
 	return $self->{id};
 }
 
-sub include
+sub skip
 {
 	my $self = shift;
 	my $test = shift;
 	
 	return
-		$self->{include}
-			? $self->{include}->qgrep($test)
-			: 1;
+		$self->{skip}
+			? $self->{skip}->qgrep($test)
+			: 0;
+}
+
+sub getName
+{
+       # works as both class/instance/sub...
+       #
+       return 'config.testontap';
+}
+
+sub getOrderStrategy
+{
+	my $self = shift;
+	
+	return $self->{orderstrategy};
+}
+
+sub getPreprocessCmd
+{
+	my $self = shift;
+	
+	return $self->{preprocesscmd};
+}
+
+sub getPostprocessCmd
+{
+	my $self = shift;
+	
+	return $self->{postprocesscmd};
 }
 
 sub hasParallelizableRule
@@ -160,20 +239,27 @@ sub parallelizable
 			: 0;
 }
 
-sub mapsExtension
+sub hasExecMapping
 {
 	my $self = shift;
-	my $ext = shift;
+	my $testName = shift;
 
-	return $self->{execmap}->mapsExtension($ext);	
+	return $self->{execmap}->hasMapping($testName);	
 }
 
-sub getCommandForExtension
+sub getExecMapping
 {
 	my $self = shift;
-	my $ext = shift;
+	my $testName = shift;
 
-	return $self->{execmap}->getCommandForExtension($ext);	
+	return $self->{execmap}->getMapping($testName);	
+}
+
+sub getRawCfg
+{
+	my $self = shift;
+
+	return $self->{rawcfg};	
 }
 
 sub getDependencyRuleNames
@@ -190,12 +276,17 @@ sub getMatchesAndDependenciesForRule
 	my $tests = shift;
 	
 	my @matches = $self->{deprules}->{$depRuleName}->{match}->qgrep(@$tests);
-	die("No tests selected by 'match' in dependency rule '$depRuleName'\n") unless @matches;
-
 	my @dependencies = $self->{deprules}->{$depRuleName}->{dependson}->qgrep(@$tests);
-	die("No tests selected by 'dependson' in dependency rule '$depRuleName'\n") unless @dependencies;
 	 
 	return (\@matches, \@dependencies);
+}
+
+sub getParallelGroupManager
+{
+	my $self = shift;
+	my $testName = shift;
+
+	return $self->{parallelgroupmanager};	
 }
 
 1;

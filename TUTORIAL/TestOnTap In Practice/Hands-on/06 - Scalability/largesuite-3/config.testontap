@@ -1,0 +1,17 @@
+# required to identify this suite
+#
+id = 766ef8f8-ba21-11e7-8c6a-816078a52c78
+
+# all tests are potentially parallelizable, but see the PARALLELGROUP
+#
+parallelizable = true
+
+execmap = t-files
+
+[EXECMAP t-files]
+match = regexp(\.t$)
+cmd = perl
+
+[PARALLELGROUP max_2_small_at_a_time]
+match = regexp(small/)
+maxconcurrent = 2

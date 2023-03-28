@@ -3,6 +3,10 @@ package App::TestOnTap::Scheduler;
 use strict;
 use warnings;
 
+our $VERSION = '1.001';
+my $version = $VERSION;
+$VERSION = eval $VERSION;
+
 use TAP::Parser::Scheduler::Job;
 use TAP::Parser::Scheduler::Spinner;
 
@@ -95,20 +99,13 @@ sub get_job
 		}
 		else
 		{
-			# the queue is empty (but still active), so spin our wheels a bit... 
+			# the queue is empty but still active, so spin our wheels a bit... 
 			#
 			$job = $self->{spinner}; 
 		}
 	}
 
 	return $job;
-}
-
-sub as_string
-{
-	my $self = shift;
-	
-	return 'NIY';
 }
 
 sub __finish

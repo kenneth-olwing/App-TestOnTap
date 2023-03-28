@@ -1,0 +1,8 @@
+# unique id, don’t reuse this one!
+id = 21465682-ba51-11e7-86d1-8ace7f57c2ad
+
+execmap = t-files
+
+[EXECMAP t-files]
+match = regexp(\.t$)
+cmd = perl

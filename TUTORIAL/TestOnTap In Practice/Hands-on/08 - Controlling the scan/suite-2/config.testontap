@@ -1,0 +1,11 @@
+# unique id, don’t reuse this one!
+id = fb5b62ad-ba46-11e7-a527-f7a64ce97670
+
+# avoid scanning the data directory or considering the INFO.txt file
+skip = regexp(^data/) or eq(INFO.txt)
+
+execmap = t-files
+
+[EXECMAP t-files]
+match = regexp(\.t$)
+cmd = perl

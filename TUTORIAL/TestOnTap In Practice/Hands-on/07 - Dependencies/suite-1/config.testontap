@@ -1,0 +1,12 @@
+id = b0de5002-ba2c-11e7-8bda-b81236d59c8e
+
+order = natural
+
+parallelizable = true
+
+execmap = t-files
+
+[EXECMAP t-files]
+match = regexp(\.t$)
+cmd = perl
+

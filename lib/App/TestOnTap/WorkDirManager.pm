@@ -3,6 +3,10 @@ package App::TestOnTap::WorkDirManager;
 use strict;
 use warnings;
 
+our $VERSION = '1.001';
+my $version = $VERSION;
+$VERSION = eval $VERSION;
+
 use App::TestOnTap::Util qw(slashify stringifyTime $IS_WINDOWS);
 
 use Archive::Zip qw(:ERROR_CODES);
@@ -21,6 +25,7 @@ use POSIX qw(uname);
 sub new
 {
 	my $class = shift;
+	my $args = shift;
 	my $workdir = shift;
 	my $suiteRoot = shift;
 	
@@ -44,18 +49,28 @@ sub new
 	my $self = bless
 				(
 					{
+						args => $args,
 						suiteroot => $suiteRoot,
 						root => $workdir,
 						tmp => slashify("$workdir/tmp"),
-						private => slashify("$workdir/data/private"),
-						tap =>  slashify("$workdir/data/tap"),
-						result =>  slashify("$workdir/data/result"),
-						json => JSON->new()->utf8()->pretty()->canonical() 
+						save => slashify("$workdir/save"),
+						save_suite => slashify("$workdir/save/suite"),
+						save_testontap => slashify("$workdir/save/testontap"),
+						tap =>  slashify("$workdir/save/testontap/tap"),
+						result =>  slashify("$workdir/save/testontap/result"),
+						json => JSON->new()->utf8()->pretty()->canonical(),
+						orderstrategy => undef,
+						dispensedorder => [],
+						foundtests => [],
+						commandlines => {},
+						fullgraph => undef,
+						prunedgraph => undef,
+						preprocess => undef,
 					},
 					$class
 				);
 
-	foreach my $p (qw(tmp private tap result))
+	foreach my $p (qw(tmp save save_suite save_testontap tap result))
 	{
 		mkpath($self->{$p}) || die("Failed to mkdir '$self->{$p}': $!\n");
 	}
@@ -69,7 +84,7 @@ sub beginTestRun
 	
 	$self->{begin} = time();
 	
-	$self->__save("$self->{root}/data/env", { %ENV });
+	$self->__save("$self->{save_testontap}/env", { %ENV });
 }
 
 sub endTestRun
@@ -93,12 +108,23 @@ sub endTestRun
 			todo => [ $aggregator->todo() ],
 			todo_passed => [ $aggregator->todo_passed() ],
 		};
-	$self->__save("$self->{root}/data/summary", $summary);
-	
+	$self->__save("$self->{save_testontap}/summary", $summary);
+
+	my $testinfo =
+		{
+			config => $self->{args}->getConfig()->getRawCfg(),
+			dispensedorder => $self->{dispensedorder},
+			found => $self->{foundtests},
+			commandlines => $self->{commandlines},
+			fullgraph => $self->{fullgraph},
+			prunedgraph => $self->{prunedgraph},
+		};
+	$self->__save("$self->{save_testontap}/testinfo", $testinfo);
+
 	my $elapsed = $aggregator->elapsed();
 	my $meta =
 		{
-			format => { major => -1, minor => 0 }, # Change when format of result tree is changed in any way.
+			format => { major => 1, minor => 0 }, # Change when format of result tree is changed in any way.
 			runid => $args->getId(),
 			suiteid => $args->getConfig()->getId(),
 			suitename => basename($args->getSuiteRoot()),
@@ -113,12 +139,31 @@ sub endTestRun
 			user => $IS_WINDOWS ? getlogin() : scalar(getpwuid($<)),
 			host => hostfqdn(),
 			jobs => $args->getJobs(),
-			argv => $args->getArgv(),
+			dollar0 => slashify(File::Spec->rel2abs($0)),
+			argv => $args->getFullArgv(),
 			defines => $args->getDefines(),
 			platform => $^O,
-			uname => [ uname() ]
+			uname => [ uname() ],
+			order => $self->{orderstrategy} ? $self->{orderstrategy}->getStrategyName() : undef,
 		};
-	$self->__save("$self->{root}/data/meta", $meta);
+	$self->__save("$self->{save_testontap}/meta", $meta);
+
+	$self->__saveText("$self->{save_testontap}/preprocess", $self->{preprocess}) if $self->{preprocess};
+}
+
+# retain the tap handles we issue so we can 'manually' close them
+# this can be necessary during a bailout on windows, where the 
+# spool handle closing is not called, and the automatic cleanup
+# of temp stuff spouts errors to delete a file due to it having an
+# open handle to it.
+#
+# note that putting the handle as a key stringifies it, so we
+# must use the actual value when closing, not the string...
+#
+my %tapHandles;
+END
+{
+	close($tapHandles{$_}) foreach (keys(%tapHandles));
 }
 
 sub openTAPHandle
@@ -131,6 +176,11 @@ sub openTAPHandle
 	my $tapPath = slashify("$self->{tap}/$testPath.tap");
 	mkpath(dirname($tapPath));
 	open(my $h, '>', $tapPath) or die("Failed to open '$tapPath': $!");
+
+	# save the handle in the list, forcibly stringify it as key and
+	# save the actual value
+	# 
+	$tapHandles{"$h"} = $h;
 	
 	return $h;
 }
@@ -141,7 +191,15 @@ sub closeTAPHandle
 	my $parser = shift;
 	
 	my $spool_handle = $parser->delete_spool;
-	close($spool_handle) if $spool_handle;
+	if ($spool_handle)
+	{
+		close($spool_handle);
+		
+		# don't forget to remove the key/value in the list
+		# using the stringified version of the handle!
+		#
+		delete($tapHandles{"$spool_handle"});
+	}
 	
 	return;
 }
@@ -197,7 +255,7 @@ sub saveResult
 	my $runid = $self->{runid};
 	my $ts = stringifyTime($self->{begin});
 	my $name = "$pfx.$ts.$runid";
-	my $from = slashify("$self->{root}/data");
+	my $from = slashify($self->{save});
 
 	my $to;
 	if ($asArchive)
@@ -227,11 +285,76 @@ sub getTmp
 	return $self->{tmp};
 }
 
-sub getPrivate
+sub getSaveSuite
 {
 	my $self = shift;
 	
-	return $self->{private};
+	return $self->{save_suite};
+}
+
+sub recordOrderStrategy
+{
+	my $self = shift;
+	my $orderstrategy = shift;
+	
+	$self->{orderstrategy} = $orderstrategy;
+}
+
+sub recordDispensedOrder
+{
+	my $self = shift;
+	my @dispensed = @_;
+	
+	push(@{$self->{dispensedorder}}, @dispensed);	
+}
+
+sub recordFoundTests
+{
+	my $self = shift;
+	my @foundTests = @_;
+	
+	push(@{$self->{foundtests}}, @foundTests);	
+}
+
+sub recordFullGraph
+{
+	my $self = shift;
+	my %fullgraph = @_;
+	
+	$self->{fullgraph} = \%fullgraph;	
+}
+
+sub recordPrunedGraph
+{
+	my $self = shift;
+	my %prunedgraph = @_;
+	
+	$self->{prunedgraph} = \%prunedgraph;	
+}
+
+sub recordPreprocess
+{
+	my $self = shift;
+	my $preproc = shift;
+	
+	$self->{preprocess} = $preproc;	
+}
+
+sub recordPostprocess
+{
+	my $self = shift;
+	my $postproc = shift;
+	
+	$self->__saveText("$self->{save_testontap}/postprocess", $postproc);
+}
+
+sub recordCommandLine
+{
+	my $self = shift;
+	my $test = shift;
+	my $cmdline = shift;
+	
+	$self->{commandlines}->{$test} = $cmdline;	
 }
 
 sub __save
@@ -243,6 +366,17 @@ sub __save
 	my $file = slashify("$name.json");
 	mkpath(dirname($file));
 	write_file($file, $self->{json}->encode($data)) || die("Failed to write '$file': $!\n");
+}
+
+sub __saveText
+{
+	my $self = shift;
+	my $name = shift;
+	my $data = shift;
+	
+	my $file = slashify("$name.txt");
+	mkpath(dirname($file));
+	write_file($file, @$data) || die("Failed to write '$file': $!\n");
 }
 
 1;
